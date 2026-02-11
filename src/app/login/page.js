@@ -51,19 +51,23 @@ const Login = () => {
     setErrors({});
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Small delay for UX feel, can be removed if desired
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      if (
-        formData.username.toLowerCase() === "admin" &&
-        formData.password === "password123"
-      ) {
-        const fakeToken =
-          "eyJhGcioJiuUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-        localStorage.setItem("token", fakeToken);
-        router.push("/");
-      } else {
-        throw new Error("Hmm, username atau password salah nih. Coba lagi ya!");
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Login failed");
       }
+
+      // Success
+      router.push("/");
+      router.refresh();
     } catch (err) {
       setErrors((prev) => ({
         ...prev,
