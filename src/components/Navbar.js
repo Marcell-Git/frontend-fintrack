@@ -1,7 +1,22 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import { FaUser, FaSignOutAlt } from "react-icons/fa";
 import { GrMoney } from "react-icons/gr";
 
-const Navbar = () => {
+const Navbar = ({ user }) => {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md transition-all duration-300">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -22,13 +37,16 @@ const Navbar = () => {
               <FaUser size={14} />
             </div>
             <p className="font-semibold text-sm text-gray-600 hidden md:block">
-              Rizky Hasan
+              {user?.username || "Pengguna"}
             </p>
           </div>
 
           <div className="h-6 w-px bg-gray-200 hidden md:block"></div>
 
-          <button className="group flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors duration-200 p-2 rounded-lg hover:bg-red-50">
+          <button 
+            onClick={handleLogout}
+            className="group flex items-center gap-2 text-gray-500 hover:text-red-500 transition-colors duration-200 p-2 rounded-lg hover:bg-red-50"
+          >
             <FaSignOutAlt className="text-lg group-hover:-translate-x-1 transition-transform duration-200" />
             <span className="font-semibold text-sm hidden md:block">Logout</span>
           </button>
@@ -38,5 +56,6 @@ const Navbar = () => {
     </nav>
   );
 };
+
 
 export default Navbar;
