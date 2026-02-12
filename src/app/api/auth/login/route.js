@@ -26,17 +26,21 @@ export async function POST(request) {
     const user = data.user;
 
     const cookieStore = await cookies();
+    
+    // DEBUG: Log token generation (Remove in production if sensitive)
+    // console.log("Setting cookie for user:", user.username);
+    
     cookieStore.set({
       name: COOKIE_NAME,
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production", // Secure only in production
+      sameSite: "strict", // Revert to strict for better security
       path: "/",
-      maxAge: 3600, // 1 hour
+      maxAge: 3600, 
     });
 
-    return NextResponse.json({ user });
+    return NextResponse.json({ user, token }); // Return token for client-side storage
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(

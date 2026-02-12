@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 import {
   FaPlus,
   FaRegCalendarAlt,
@@ -11,8 +13,11 @@ import {
   FaGamepad,
   FaEllipsisH,
   FaShoppingBag,
+  FaTimes,
 } from "react-icons/fa";
 import { GrFormNext, GrFormPrevious } from "react-icons/gr";
+
+const MySwal = withReactContent(Swal);
 
 export default function DashboardClient({ initialTransactions }) {
   const router = useRouter();
@@ -24,6 +29,49 @@ export default function DashboardClient({ initialTransactions }) {
     kategori: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMobileFormOpen, setIsMobileFormOpen] = useState(false);
+
+  useEffect(() => {
+    // Detect offline status
+    const handleOffline = () => {
+      MySwal.fire({
+        title: "Koneksi Terputus!",
+        text: "Anda masih bisa melihat data lama, namun fitur transaksi membutuhkan internet.",
+        icon: "warning",
+        confirmButtonText: "Mengerti",
+        confirmButtonColor: "#4f46e5",
+        background: "#f9fafb",
+        customClass: {
+          title: "text-indigo-800 font-bold",
+          popup: "rounded-2xl shadow-xl",
+        },
+      });
+    };
+
+    const handleOnline = () => {
+      MySwal.fire({
+        title: "Kembali Online!",
+        text: "Sinkronisasi data berhasil.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+        confirmButtonColor: "#4f46e5",
+        background: "#f9fafb",
+        customClass: {
+          title: "text-indigo-800 font-bold",
+          popup: "rounded-2xl shadow-xl",
+        },
+      });
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
+  }, []);
 
   // Calculate stats dynamically
   const totalAmount = transactions.reduce(
@@ -70,6 +118,21 @@ export default function DashboardClient({ initialTransactions }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!navigator.onLine) {
+       MySwal.fire({
+        title: "Tidak Ada Internet",
+        text: "Maaf, Anda tidak dapat menyimpan transaksi saat offline.",
+        icon: "error",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#ef4444",
+        customClass: {
+          popup: "rounded-2xl shadow-xl",
+        },
+      });
+      return;
+    }
+
     if (!formData.jumlah || !formData.kategori || !formData.tanggal) return;
 
     setIsSubmitting(true);
@@ -92,100 +155,133 @@ export default function DashboardClient({ initialTransactions }) {
         jumlah: "",
         kategori: "",
       });
+      setIsMobileFormOpen(false); // Close modal on success
       
+      MySwal.fire({
+        title: "Berhasil!",
+        text: "Transaksi telah disimpan.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+        confirmButtonColor: "#4f46e5",
+      });
+
       router.refresh(); // Sync with server data
     } catch (error) {
       console.error(error);
-      alert("Gagal menyimpan data");
+      MySwal.fire({
+        title: "Gagal Menyimpan",
+        text: "Terjadi kesalahan saat menyimpan data.",
+        icon: "error",
+        confirmButtonColor: "#ef4444",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return (
-    <div className="container mx-auto px-4 mt-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-          <div className="bg-white shadow-xl shadow-indigo-100 p-6 rounded-3xl border border-gray-100 lg:sticky lg:top-6">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-xl p-3 shadow-lg shadow-indigo-200">
-                <FaPlus className="text-white text-lg" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">Tambah Baru</h2>
-                <p className="text-xs text-gray-500">Catat pengeluaranmu</p>
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="group">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
-                  Deskripsi
-                </label>
-                <input
-                  name="deskripsi"
-                  value={formData.deskripsi}
-                  onChange={handleChange}
-                  type="text"
-                  placeholder="Contoh: Nasi Goreng"
-                  className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none placeholder-gray-400"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="group">
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
-                    Tanggal
-                  </label>
-                  <input
-                    name="tanggal"
-                    value={formData.tanggal}
-                    onChange={handleChange}
-                    type="date"
-                    className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-gray-600"
-                  />
-                </div>
-                <div className="group">
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
-                    Jumlah
-                  </label>
-                  <input
-                    name="jumlah"
-                    value={formData.jumlah}
-                    onChange={handleChange}
-                    type="number"
-                    placeholder="0"
-                    className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all outline-none placeholder-gray-400"
-                  />
-                </div>
-              </div>
-              <div className="group">
-                <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
-                  Kategori
-                </label>
-                <select
-                  name="kategori"
-                  value={formData.kategori}
-                  onChange={handleChange}
-                  className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
-                >
-                  <option value="">Pilih Kategori...</option>
-                  <option value="makanan">🍔 Makanan</option>
-                  <option value="transportasi">🚗 Transportasi</option>
-                  <option value="belanja">🛒 Belanja</option>
-                  <option value="hiburan">🎬 Hiburan</option>
-                </select>
-              </div>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-indigo-200 transition-all mt-2 disabled:opacity-70"
-              >
-                {isSubmitting ? "Menyimpan..." : "Simpan Pengeluaran"}
-              </button>
-            </form>
+  // Reusable Form Component
+  const TransactionForm = ({ isMobile = false }) => (
+    <div className={`bg-white shadow-xl shadow-indigo-100 p-6 rounded-3xl border border-gray-100 ${!isMobile && "lg:sticky lg:top-6"}`}>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <div className="bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-xl p-3 shadow-lg shadow-indigo-200">
+            <FaPlus className="text-white text-lg" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">Tambah Baru</h2>
+            <p className="text-xs text-gray-500">Catat pengeluaranmu</p>
           </div>
         </div>
+        {isMobile && (
+          <button 
+            onClick={() => setIsMobileFormOpen(false)}
+            className="p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"
+          >
+            <FaTimes />
+          </button>
+        )}
+      </div>
 
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="group">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
+            Deskripsi
+          </label>
+          <input
+            name="deskripsi"
+            value={formData.deskripsi}
+            onChange={handleChange}
+            type="text"
+            placeholder="Contoh: Nasi Goreng"
+            className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none placeholder-gray-400"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="group">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
+              Tanggal
+            </label>
+            <input
+              name="tanggal"
+              value={formData.tanggal}
+              onChange={handleChange}
+              type="date"
+              className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all outline-none text-gray-600"
+            />
+          </div>
+          <div className="group">
+            <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
+              Jumlah
+            </label>
+            <input
+              name="jumlah"
+              value={formData.jumlah}
+              onChange={handleChange}
+              type="number"
+              placeholder="0"
+              className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all outline-none placeholder-gray-400"
+            />
+          </div>
+        </div>
+        <div className="group">
+          <label className="block text-sm font-medium text-gray-700 mb-1.5 ml-1">
+            Kategori
+          </label>
+          <select
+            name="kategori"
+            value={formData.kategori}
+            onChange={handleChange}
+            className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+          >
+            <option value="">Pilih Kategori...</option>
+            <option value="makanan">🍔 Makanan</option>
+            <option value="transportasi">🚗 Transportasi</option>
+            <option value="belanja">🛒 Belanja</option>
+            <option value="hiburan">🎬 Hiburan</option>
+          </select>
+        </div>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-indigo-200 transition-all mt-2 disabled:opacity-70"
+        >
+          {isSubmitting ? "Menyimpan..." : "Simpan Pengeluaran"}
+        </button>
+      </form>
+    </div>
+  );
+
+  return (
+    <div className="container mx-auto px-4 mt-8 pb-24 lg:pb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Desktop Sidebar - Form */}
+        <div className="hidden lg:block lg:col-span-1">
+          <TransactionForm />
+        </div>
+
+        {/* Main Content Area - Stats & History */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white shadow-xl shadow-indigo-100 p-6 rounded-3xl border border-gray-100">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -300,6 +396,33 @@ export default function DashboardClient({ initialTransactions }) {
           </div>
         </div>
       </div>
+
+      {/* Mobile Floating Action Button */}
+      <button
+        onClick={() => setIsMobileFormOpen(true)}
+        className="fixed bottom-6 right-6 lg:hidden bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-full shadow-xl shadow-indigo-300 transition-all hover:scale-110 active:scale-95 z-40"
+      >
+        <FaPlus size={24} />
+      </button>
+
+      {/* Mobile Form Modal/Bottom Sheet */}
+      {isMobileFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center lg:hidden">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsMobileFormOpen(false)}
+          ></div>
+          
+          {/* Modal Content - Slides up on mobile */}
+          <div className="relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-4 animate-in slide-in-from-bottom duration-300">
+             {/* Handle bar for bottom sheet feel */}
+             <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 sm:hidden"></div>
+             
+             <TransactionForm isMobile={true} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

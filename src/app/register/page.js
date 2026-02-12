@@ -7,7 +7,7 @@ import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 
-const Login = () => {
+const Register = () => {
   const router = useRouter();
   const [isOffline, setIsOffline] = useState(false);
 
@@ -63,6 +63,7 @@ const Login = () => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
+    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -84,13 +85,17 @@ const Login = () => {
     const newErrors = {};
 
     if (!formData.username.trim()) {
-      newErrors.username = "Waduh, username jangan kosong dong!";
+      newErrors.username = "Username wajib diisi!";
     }
 
     if (!formData.password) {
-      newErrors.password = "Password-nya mana nih?";
+      newErrors.password = "Password wajib diisi!";
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password minimal 6 karakter ya, biar aman!";
+      newErrors.password = "Password minimal 6 karakter!";
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Password tidak cocok!";
     }
 
     setErrors(newErrors);
@@ -103,7 +108,7 @@ const Login = () => {
     if (!navigator.onLine) {
       MySwal.fire({
         title: "Tidak Ada Internet",
-        text: "Mohon periksa koneksi internet Anda untuk melakukan login.",
+        text: "Mohon periksa koneksi internet Anda untuk mendaftar.",
         icon: "error",
         confirmButtonText: "OK",
         confirmButtonColor: "#ef4444", // Red-500
@@ -120,45 +125,41 @@ const Login = () => {
     setErrors({});
 
     try {
-      // Small delay for UX feel, can be removed if desired
+      // Small delay for UX feel
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password,
+        }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Login failed");
+        throw new Error(data.message || "Registrasi gagal");
       }
 
-      // Success
-      const data = await res.json();
-      // console.log("Login successful, received data:", data);
-      
-      // Removed localStorage logic for security best practices
-      // We rely solely on HttpOnly cookies now.
-
       MySwal.fire({
-        title: "Login Berhasil!",
-        text: "Selamat datang kembali di FinTrack.",
+        title: "Registrasi Berhasil!",
+        text: "Akun Anda telah dibuat. Silakan login.",
         icon: "success",
-        timer: 1500,
-        showConfirmButton: false,
+        confirmButtonText: "Login Sekarang",
+        confirmButtonColor: "#4f46e5",
         background: "#f9fafb",
         customClass: {
           popup: "rounded-2xl shadow-xl",
         },
       }).then(() => {
-        // console.log("Redirecting to dashboard...");
-        window.location.replace("/");
+        router.push("/login");
       });
     } catch (err) {
       MySwal.fire({
-        title: "Gagal Masuk",
-        text: err.message || "Yah backend-nya lagi ngambek. Coba nanti lagi ya!",
+        title: "Gagal Mendaftar",
+        text: err.message || "Terjadi kesalahan saat mendaftar.",
         icon: "error",
         confirmButtonText: "Coba Lagi",
         confirmButtonColor: "#4f46e5",
@@ -184,17 +185,11 @@ const Login = () => {
             FinTrack
           </h1>
           <p className="text-gray-500 text-sm">
-            Masuk dulu yuk, biar duitmu aman terkendali 🚀
+            Daftar akun baru untuk mulai mengatur keuanganmu 🚀
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {errors.general && (
-            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded text-sm mb-4 animate-pulse">
-              <p>{errors.general}</p>
-            </div>
-          )}
-
           <div className="group relative">
             <label
               htmlFor="username"
@@ -209,7 +204,7 @@ const Login = () => {
               value={formData.username}
               onChange={handleChange}
               className={`block w-full px-4 py-3 rounded-lg border ${errors.username ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-gray-200 focus:ring-blue-500 focus:border-blue-500"} bg-gray-50/50 focus:bg-white transition-all duration-200 focus:shadow-md outline-none`}
-              placeholder="Contoh: admin"
+              placeholder="Contoh: user123"
             />
             {errors.username && (
               <p className="mt-1 text-xs text-red-500 font-medium">
@@ -232,11 +227,34 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               className={`block w-full px-4 py-3 rounded-lg border ${errors.password ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-gray-200 focus:ring-blue-500 focus:border-blue-500"} bg-gray-50/50 focus:bg-white transition-all duration-200 focus:shadow-md outline-none`}
-              placeholder="Minimal 6 karakter ya"
+              placeholder="Minimal 6 karakter"
             />
             {errors.password && (
               <p className="mt-1 text-xs text-red-500 font-medium">
                 {errors.password}
+              </p>
+            )}
+          </div>
+
+          <div className="group relative">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700 mb-1 transition-colors group-focus-within:text-blue-600"
+            >
+              Konfirmasi Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className={`block w-full px-4 py-3 rounded-lg border ${errors.confirmPassword ? "border-red-300 focus:ring-red-500 focus:border-red-500" : "border-gray-200 focus:ring-blue-500 focus:border-blue-500"} bg-gray-50/50 focus:bg-white transition-all duration-200 focus:shadow-md outline-none`}
+              placeholder="Ulangi password Anda"
+            />
+            {errors.confirmPassword && (
+              <p className="mt-1 text-xs text-red-500 font-medium">
+                {errors.confirmPassword}
               </p>
             )}
           </div>
@@ -268,22 +286,22 @@ const Login = () => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   ></path>
                 </svg>
-                <span>Lagi proses nih...</span>
+                <span>Mendaftar...</span>
               </div>
             ) : (
-              "Masuk Sekarang"
+              "Daftar Sekarang"
             )}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Belum punya akun?{" "}
+            Sudah punya akun?{" "}
             <Link
-              href="/register"
+              href="/login"
               className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
             >
-              Daftar sekarang
+              Masuk di sini
             </Link>
           </p>
         </div>
@@ -296,4 +314,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
