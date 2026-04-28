@@ -2,11 +2,39 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FaUser, FaSignOutAlt } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { FaUser, FaSignOutAlt, FaDownload } from "react-icons/fa";
 import { GrMoney } from "react-icons/gr";
 
 const Navbar = ({ user }) => {
   const router = useRouter();
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+
+    // Check if already installed
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setIsInstalled(true);
+    }
+
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === "accepted") {
+      setInstallPrompt(null);
+      setIsInstalled(true);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -31,7 +59,18 @@ const Navbar = ({ user }) => {
           </div>
         </Link>
 
-        <div className="flex items-center gap-3 md:gap-6">
+        <div className="flex items-center gap-2 md:gap-4">
+
+          {/* Install App Button */}
+          {installPrompt && !isInstalled && (
+            <button
+              onClick={handleInstall}
+              className="flex items-center gap-2 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 px-3 py-2 rounded-xl transition-all duration-200 hover:shadow-md hover:shadow-indigo-100"
+            >
+              <FaDownload size={11} />
+              <span className="hidden sm:block">Install App</span>
+            </button>
+          )}
           
           <div className="flex items-center gap-3 bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 rounded-full p-1.5 pr-2 md:pr-4 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md">
             <div className="bg-white p-2 rounded-full shadow-sm text-indigo-500">
@@ -59,4 +98,4 @@ const Navbar = ({ user }) => {
 };
 
 
-export default Navbar;
+export default Navbar;
