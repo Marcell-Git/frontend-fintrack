@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import DashboardClient from "@/components/DashboardClient";
 import { fetchWithAuth } from "@/lib/api";
 
-export default async function DashboardPage() {
+export default async function Home() {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;

@@ -75,7 +75,7 @@ const LoginForm = () => {
       }
 
       // Success
-      router.push("/dashboard");
+      router.push("/");
       router.refresh();
     } catch (err) {
       setErrors((prev) => ({
