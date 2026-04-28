@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaUser, FaSignOutAlt } from "react-icons/fa";
-import { GrMoney } from "react-icons/gr";
 
 const Navbar = ({ user }) => {
   const router = useRouter();
@@ -25,8 +24,8 @@ const Navbar = ({ user }) => {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         
         <Link href="/" className="flex items-center gap-2 group cursor-pointer">
-          <div className="text-xl bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-xl p-2.5 shadow-lg shadow-indigo-200 transition-transform group-hover:scale-110 duration-200">
-            <GrMoney className="text-white text-lg" />
+          <div className="text-sm font-black bg-white border border-gray-100 rounded-xl p-2.5 shadow-sm transition-transform group-hover:scale-110 duration-200 leading-none flex items-center justify-center w-10 h-10">
+            <span className="bg-gradient-to-tr from-indigo-600 to-purple-600 bg-clip-text text-transparent">FT</span>
           </div>
           <div className="text-xl font-bold text-gray-800 tracking-tight">
             Fin<span className="text-indigo-600">Track</span>
