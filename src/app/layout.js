@@ -37,7 +37,7 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-title" content="FinTrack" />
       </head>
       <body
-        className={`${outfit.variable} font-sans antialiased`}
+        className={`${outfit.variable} font-sans antialiased bg-[#F2F2F7]`}
       >
         {children}
       </body>
