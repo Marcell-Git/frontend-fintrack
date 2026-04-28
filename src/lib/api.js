@@ -18,7 +18,9 @@ export async function fetchWithAuth(endpoint, options = {}) {
   }
 
   try {
-    const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const url = `${API_BASE_URL}${endpoint}`;
+    console.log(`Fetching: ${url}`);
+    const res = await fetch(url, {
       ...options,
       headers: {
         ...options.headers,

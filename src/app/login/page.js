@@ -1,9 +1,18 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 const Login = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [successMessage, setSuccessMessage] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("registered")) {
+      setSuccessMessage("Pendaftaran berhasil! Silakan masuk dengan akun barumu.");
+    }
+  }, [searchParams]);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -66,7 +75,7 @@ const Login = () => {
       }
 
       // Success
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } catch (err) {
       setErrors((prev) => ({
@@ -96,6 +105,12 @@ const Login = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {successMessage && (
+            <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 rounded text-sm mb-4">
+              <p>{successMessage}</p>
+            </div>
+          )}
+
           {errors.general && (
             <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded text-sm mb-4 animate-pulse">
               <p>{errors.general}</p>
@@ -182,6 +197,18 @@ const Login = () => {
             )}
           </button>
         </form>
+
+        <div className="mt-8 text-center border-t border-gray-100 pt-6">
+          <p className="text-sm text-gray-500">
+            Belum punya akun?{" "}
+            <Link
+              href="/register"
+              className="font-bold text-blue-600 hover:text-blue-500 transition-colors"
+            >
+              Daftar sekarang
+            </Link>
+          </p>
+        </div>
       </div>
 
       <div className="absolute bottom-4 text-center text-gray-400 text-xs text-opacity-60 w-full">

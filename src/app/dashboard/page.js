@@ -3,11 +3,14 @@ import Navbar from "@/components/Navbar";
 import DashboardClient from "@/components/DashboardClient";
 import { fetchWithAuth } from "@/lib/api";
 
-export default async function Home() {
+export default async function DashboardPage() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+
   // Fetch transactions securely (Server-to-Server)
-  // We pass '0' as userId because the backend securely uses the token's user ID
   const [transactions, user] = await Promise.all([
-    fetchWithAuth("/api/pengeluaran/user/0"),
+    fetchWithAuth(`/api/pengeluaran/user/0/year/${year}/month/${month}`),
     fetchWithAuth("/api/auth/me"),
   ]);
 

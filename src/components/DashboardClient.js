@@ -17,6 +17,7 @@ import { GrFormNext, GrFormPrevious } from "react-icons/gr";
 export default function DashboardClient({ initialTransactions }) {
   const router = useRouter();
   const [transactions, setTransactions] = useState(initialTransactions || []);
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [formData, setFormData] = useState({
     deskripsi: "",
     tanggal: new Date().toISOString().split("T")[0],
@@ -24,6 +25,36 @@ export default function DashboardClient({ initialTransactions }) {
     kategori: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+
+  const fetchTransactions = async (date) => {
+    setIsFetching(true);
+    try {
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const res = await fetch(`/api/pengeluaran?year=${year}&month=${month}`);
+      if (res.ok) {
+        const data = await res.json();
+        setTransactions(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch transactions:", error);
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  const handlePrevMonth = () => {
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    setCurrentDate(newDate);
+    fetchTransactions(newDate);
+  };
+
+  const handleNextMonth = () => {
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    setCurrentDate(newDate);
+    fetchTransactions(newDate);
+  };
 
   // Calculate stats dynamically
   const totalAmount = transactions.reduce(
@@ -84,8 +115,15 @@ export default function DashboardClient({ initialTransactions }) {
 
       const newTx = await res.json();
       
-      // Optimistic update or refresh
-      setTransactions([newTx, ...transactions]);
+      // Update local state if it's within the current viewed month
+      const txDate = new Date(newTx.tanggal);
+      if (
+        txDate.getMonth() === currentDate.getMonth() &&
+        txDate.getFullYear() === currentDate.getFullYear()
+      ) {
+        setTransactions([newTx, ...transactions]);
+      }
+      
       setFormData({
         deskripsi: "",
         tanggal: new Date().toISOString().split("T")[0],
@@ -198,13 +236,24 @@ export default function DashboardClient({ initialTransactions }) {
                 </h3>
               </div>
               <div className="flex items-center bg-gray-50 rounded-lg p-1 border border-gray-100">
-                <button className="p-2 hover:bg-white rounded-md text-gray-500">
+                <button 
+                  onClick={handlePrevMonth}
+                  className="p-2 hover:bg-white rounded-md text-gray-500 transition-colors"
+                  disabled={isFetching}
+                >
                   <GrFormPrevious />
                 </button>
-                <span className="px-4 text-sm font-semibold text-gray-700">
-                  Februari 2026
+                <span className="px-4 text-sm font-semibold text-gray-700 min-w-[140px] text-center">
+                  {currentDate.toLocaleDateString("id-ID", {
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </span>
-                <button className="p-2 hover:bg-white rounded-md text-gray-500">
+                <button 
+                  onClick={handleNextMonth}
+                  className="p-2 hover:bg-white rounded-md text-gray-500 transition-colors"
+                  disabled={isFetching}
+                >
                   <GrFormNext />
                 </button>
               </div>
