@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 
-const API_BASE_URL = process.env.BACKEND_API_URL || "http://localhost:7000";
+const API_BASE_URL = process.env.BACKEND_API_URL || "https://backend-fintrack-gules.vercel.app";
 const COOKIE_NAME = process.env.COOKIE_NAME || "fintrack_session";
 
 export async function getAuthToken() {
