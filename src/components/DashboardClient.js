@@ -75,6 +75,7 @@ export default function DashboardClient({ initialTransactions }) {
     belanja: <FaShoppingBag size={18} className="text-[#FF9500]" />,
     transportasi: <FaBus size={18} className="text-[#5856D6]" />,
     makanan: <FaUtensils size={18} className="text-[#FF3B30]" />,
+    lainnya: <FaEllipsisH size={18} className="text-[#8E8E93]" />,
   };
 
   const categoryColors = {
@@ -82,6 +83,7 @@ export default function DashboardClient({ initialTransactions }) {
     belanja: "bg-[#FF9500]",
     transportasi: "bg-[#5856D6]",
     makanan: "bg-[#FF3B30]",
+    lainnya: "bg-[#8E8E93]",
   };
 
   const categoryStats = Object.keys(categoryTotals)
@@ -282,7 +284,7 @@ export default function DashboardClient({ initialTransactions }) {
         >
           <div className="w-10 h-1 bg-[#C7C7CC] rounded-full mx-auto mb-6"></div>
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold">New Record</h2>
+            <h2 className="text-2xl font-bold">New Transaction</h2>
             <button onClick={() => setIsFormOpen(false)} className="p-2 bg-[#E5E5EA] rounded-full text-[#8E8E93]">
               <IoCloseOutline size={24} />
             </button>
@@ -309,7 +311,7 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting }) => 
         onChange={handleChange}
         type="text"
         placeholder="Coffee, Lunch, etc."
-        className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-sm"
+        className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-base"
       />
     </div>
 
@@ -321,7 +323,7 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting }) => 
           value={formData.tanggal}
           onChange={handleChange}
           type="date"
-          className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-xs"
+          className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-base"
         />
       </div>
       <div className="space-y-1">
@@ -332,7 +334,7 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting }) => 
           onChange={handleChange}
           type="number"
           placeholder="0"
-          className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-bold text-sm"
+          className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-bold text-base"
         />
       </div>
     </div>
@@ -343,13 +345,14 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting }) => 
         name="kategori"
         value={formData.kategori}
         onChange={handleChange}
-        className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-sm appearance-none"
+        className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-base appearance-none"
       >
         <option value="">Select Category</option>
         <option value="makanan">🍔 Makanan</option>
         <option value="transportasi">🚗 Transportasi</option>
         <option value="belanja">🛒 Belanja</option>
         <option value="hiburan">🎬 Hiburan</option>
+        <option value="lainnya">Lainnya</option>
       </select>
     </div>
 
