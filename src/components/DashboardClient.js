@@ -137,6 +137,34 @@ export default function DashboardClient({ initialTransactions }) {
     }
   };
 
+  // Grouping transactions by date
+  const groupedTransactions = transactions.reduce((acc, transaction) => {
+    const dateKey = transaction.tanggal.split('T')[0];
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(transaction);
+    return acc;
+  }, {});
+
+  const sortedDates = Object.keys(groupedTransactions).sort((a, b) => new Date(b) - new Date(a));
+
+  const formatDateLabel = (dateStr) => {
+    const d = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const dDate = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+    const yesterdayDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate()).getTime();
+
+    if (dDate === todayDate) return "Hari Ini";
+    if (dDate === yesterdayDate) return "Kemarin";
+    
+    return d.toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
   return (
     <div className="min-h-screen bg-[#F2F2F7] text-[#1C1C1E] font-sans pb-24 lg:pb-10">
       <div className="container mx-auto px-4 py-6 max-w-6xl">
@@ -223,27 +251,41 @@ export default function DashboardClient({ initialTransactions }) {
                     <p className="font-medium italic">No transactions yet</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-[#F2F2F7]">
-                    {transactions.map((item) => (
-                      <div 
-                        key={item.id}
-                        className="flex items-center justify-between p-5 hover:bg-[#F2F2F7]/50 transition-colors active:bg-[#F2F2F7]"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-[#F2F2F7] flex items-center justify-center">
-                            {categoryIcons[item.kategori] || <FaEllipsisH className="text-[#8E8E93]" />}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-[#1C1C1E]">{item.deskripsi || item.kategori}</p>
-                            <p className="text-[#8E8E93] text-xs font-medium">
-                              {new Date(item.tanggal).toLocaleDateString("id-ID", { day: 'numeric', month: 'short' })}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <p className="font-bold text-[#1C1C1E] text-sm">
-                            -Rp{Number(item.jumlah).toLocaleString("id-ID")}
+                  <div className="">
+                    {sortedDates.map((dateKey) => (
+                      <div key={dateKey}>
+                        <div className="bg-[#F2F2F7]/50 px-5 py-2 border-y border-[#F2F2F7] first:border-t-0 flex justify-between items-center">
+                          <p className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest">
+                            {formatDateLabel(dateKey)}
                           </p>
+                          <p className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest">
+                            Total: Rp{groupedTransactions[dateKey].reduce((sum, item) => sum + Number(item.jumlah), 0).toLocaleString("id-ID")}
+                          </p>
+                        </div>
+                        <div className="divide-y divide-[#F2F2F7]">
+                          {groupedTransactions[dateKey].map((item) => (
+                            <div 
+                              key={item.id}
+                              className="flex items-center justify-between p-5 hover:bg-[#F2F2F7]/50 transition-colors active:bg-[#F2F2F7]"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-[#F2F2F7] flex items-center justify-center">
+                                  {categoryIcons[item.kategori] || <FaEllipsisH className="text-[#8E8E93]" />}
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-[#1C1C1E]">{item.deskripsi || item.kategori}</p>
+                                  <p className="text-[#8E8E93] text-xs font-medium capitalize">
+                                    {item.kategori}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <p className="font-bold text-[#FF3B30] text-sm">
+                                  -Rp{Number(item.jumlah).toLocaleString("id-ID")}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))}
