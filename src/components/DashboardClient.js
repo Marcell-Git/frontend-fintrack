@@ -96,8 +96,20 @@ export default function DashboardClient({ initialTransactions }) {
     }))
     .sort((a, b) => b.amount - a.amount);
 
+  const formatRupiah = (value) => {
+    if (!value) return "";
+    return new Intl.NumberFormat("id-ID").format(value);
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "jumlah") {
+      // Remove any non-numeric characters to store raw value
+      const numericValue = value.replace(/\D/g, "");
+      setFormData({ ...formData, [name]: numericValue });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -299,7 +311,7 @@ export default function DashboardClient({ initialTransactions }) {
           <div className="hidden lg:block lg:col-span-4">
             <div className="bg-white rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.04)] p-8 sticky top-8">
               <h3 className="text-xl font-bold mb-6">New Transaction</h3>
-              <FormContent formData={formData} handleChange={handleChange} handleSubmit={handleSubmit} isSubmitting={isSubmitting} />
+              <FormContent formData={formData} handleChange={handleChange} handleSubmit={handleSubmit} isSubmitting={isSubmitting} formatRupiah={formatRupiah} />
             </div>
           </div>
         </div>
@@ -331,7 +343,7 @@ export default function DashboardClient({ initialTransactions }) {
               <IoCloseOutline size={24} />
             </button>
           </div>
-          <FormContent formData={formData} handleChange={handleChange} handleSubmit={handleSubmit} isSubmitting={isSubmitting} />
+          <FormContent formData={formData} handleChange={handleChange} handleSubmit={handleSubmit} isSubmitting={isSubmitting} formatRupiah={formatRupiah} />
         </div>
       </div>
 
@@ -343,7 +355,7 @@ export default function DashboardClient({ initialTransactions }) {
   );
 }
 
-const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting }) => (
+const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, formatRupiah }) => (
   <form onSubmit={handleSubmit} className="space-y-6">
     <div className="space-y-1">
       <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Description</label>
@@ -370,14 +382,18 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting }) => 
       </div>
       <div className="space-y-1">
         <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Amount</label>
-        <input
-          name="jumlah"
-          value={formData.jumlah}
-          onChange={handleChange}
-          type="number"
-          placeholder="0"
-          className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-bold text-base"
-        />
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[#8E8E93] select-none">Rp</span>
+          <input
+            name="jumlah"
+            value={formData.jumlah ? formatRupiah(formData.jumlah) : ""}
+            onChange={handleChange}
+            type="text"
+            inputMode="numeric"
+            placeholder="0"
+            className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-bold text-base"
+          />
+        </div>
       </div>
     </div>
 
