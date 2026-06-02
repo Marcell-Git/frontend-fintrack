@@ -9,6 +9,9 @@ import {
   FaGamepad,
   FaShoppingBag,
   FaEllipsisH,
+  FaCoffee,
+  FaCalendarCheck,
+  FaBox,
 } from "react-icons/fa";
 import { IoCloseOutline, IoChevronBack, IoChevronForward } from "react-icons/io5";
 
@@ -75,6 +78,9 @@ export default function DashboardClient({ initialTransactions }) {
     belanja: <FaShoppingBag size={18} className="text-[#FF9500]" />,
     transportasi: <FaBus size={18} className="text-[#5856D6]" />,
     makanan: <FaUtensils size={18} className="text-[#FF3B30]" />,
+    ngopi: <FaCoffee size={18} className="text-[#A2845E]" />,
+    langganan: <FaCalendarCheck size={18} className="text-[#007AFF]" />,
+    kebutuhan: <FaBox size={18} className="text-[#34C759]" />,
     lainnya: <FaEllipsisH size={18} className="text-[#8E8E93]" />,
   };
 
@@ -83,6 +89,9 @@ export default function DashboardClient({ initialTransactions }) {
     belanja: "bg-[#FF9500]",
     transportasi: "bg-[#5856D6]",
     makanan: "bg-[#FF3B30]",
+    ngopi: "bg-[#A2845E]",
+    langganan: "bg-[#007AFF]",
+    kebutuhan: "bg-[#34C759]",
     lainnya: "bg-[#8E8E93]",
   };
 
@@ -355,71 +364,111 @@ export default function DashboardClient({ initialTransactions }) {
   );
 }
 
-const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, formatRupiah }) => (
-  <form onSubmit={handleSubmit} className="space-y-6">
-    <div className="space-y-1">
-      <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Description</label>
-      <input
-        name="deskripsi"
-        value={formData.deskripsi}
-        onChange={handleChange}
-        type="text"
-        placeholder="Coffee, Lunch, etc."
-        className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-base"
-      />
-    </div>
+const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, formatRupiah }) => {
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
 
-    <div className="grid grid-cols-2 gap-4">
+  const categories = [
+    { id: 'makanan', label: 'Makanan', icon: <FaUtensils className="text-[#FF3B30]" /> },
+    { id: 'ngopi', label: 'Ngopi', icon: <FaCoffee className="text-[#A2845E]" /> },
+    { id: 'kebutuhan', label: 'Kebutuhan', icon: <FaBox className="text-[#34C759]" /> },
+    { id: 'transportasi', label: 'Transportasi', icon: <FaBus className="text-[#5856D6]" /> },
+    { id: 'langganan', label: 'Langganan', icon: <FaCalendarCheck className="text-[#007AFF]" /> },
+    { id: 'belanja', label: 'Belanja', icon: <FaShoppingBag className="text-[#FF9500]" /> },
+    { id: 'hiburan', label: 'Hiburan', icon: <FaGamepad className="text-[#AF52DE]" /> },
+    { id: 'lainnya', label: 'Lainnya', icon: <FaEllipsisH className="text-[#8E8E93]" /> },
+  ];
+
+  const selectedCategory = categories.find(c => c.id === formData.kategori);
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-1">
-        <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Date</label>
+        <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Description</label>
         <input
-          name="tanggal"
-          value={formData.tanggal}
+          name="deskripsi"
+          value={formData.deskripsi}
           onChange={handleChange}
-          type="date"
+          type="text"
+          placeholder="Coffee, Lunch, etc."
           className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-base"
         />
       </div>
-      <div className="space-y-1">
-        <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Amount</label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[#8E8E93] select-none">Rp</span>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Date</label>
           <input
-            name="jumlah"
-            value={formData.jumlah ? formatRupiah(formData.jumlah) : ""}
+            name="tanggal"
+            value={formData.tanggal}
             onChange={handleChange}
-            type="text"
-            inputMode="numeric"
-            placeholder="0"
-            className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-bold text-base"
+            type="date"
+            className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-base"
           />
         </div>
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Amount</label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[#8E8E93] select-none">Rp</span>
+            <input
+              name="jumlah"
+              value={formData.jumlah ? formatRupiah(formData.jumlah) : ""}
+              onChange={handleChange}
+              type="text"
+              inputMode="numeric"
+              placeholder="0"
+              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-bold text-base"
+            />
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div className="space-y-1">
-      <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Category</label>
-      <select
-        name="kategori"
-        value={formData.kategori}
-        onChange={handleChange}
-        className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-base appearance-none"
+      <div className="space-y-1">
+        <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Category</label>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+            className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-base flex items-center justify-between"
+          >
+            {selectedCategory ? (
+              <div className="flex items-center gap-3">
+                <div className="w-5 flex justify-center">{selectedCategory.icon}</div>
+                <span>{selectedCategory.label}</span>
+              </div>
+            ) : (
+              <span className="text-[#8E8E93]">Select Category</span>
+            )}
+            <IoChevronForward className={`transition-transform duration-200 text-[#8E8E93] ${isCategoryOpen ? 'rotate-90' : ''}`} />
+          </button>
+
+          {isCategoryOpen && (
+            <div className="absolute z-10 w-full mt-2 bg-white rounded-xl shadow-lg border border-[#E5E5EA] py-2 max-h-60 overflow-y-auto">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    handleChange({ target: { name: 'kategori', value: cat.id } });
+                    setIsCategoryOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-[#F2F2F7] transition-colors"
+                >
+                  <div className="w-5 flex justify-center">{cat.icon}</div>
+                  <span className="font-medium text-[#1C1C1E]">{cat.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full bg-[#007AFF] text-white font-bold py-4 rounded-xl shadow-md active:scale-95 transition-all disabled:opacity-50 mt-4"
       >
-        <option value="">Select Category</option>
-        <option value="makanan">🍔 Makanan</option>
-        <option value="transportasi">🚗 Transportasi</option>
-        <option value="belanja">🛒 Belanja</option>
-        <option value="hiburan">🎬 Hiburan</option>
-        <option value="lainnya">Lainnya</option>
-      </select>
-    </div>
-
-    <button
-      type="submit"
-      disabled={isSubmitting}
-      className="w-full bg-[#007AFF] text-white font-bold py-4 rounded-xl shadow-md active:scale-95 transition-all disabled:opacity-50 mt-4"
-    >
-      {isSubmitting ? "Saving..." : "Add Transaction"}
-    </button>
-  </form>
-);
+        {isSubmitting ? "Saving..." : "Add Transaction"}
+      </button>
+    </form>
+  );
+};
