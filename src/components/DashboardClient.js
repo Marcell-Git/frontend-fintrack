@@ -442,21 +442,31 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
           </button>
 
           {isCategoryOpen && (
-            <div className="absolute z-10 w-full mt-2 bg-white rounded-xl shadow-lg border border-[#E5E5EA] py-2 max-h-60 overflow-y-auto">
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => {
-                    handleChange({ target: { name: 'kategori', value: cat.id } });
-                    setIsCategoryOpen(false);
-                  }}
-                  className="w-full px-4 py-3 text-left flex items-center gap-3 hover:bg-[#F2F2F7] transition-colors"
-                >
-                  <div className="w-5 flex justify-center">{cat.icon}</div>
-                  <span className="font-medium text-[#1C1C1E]">{cat.label}</span>
-                </button>
-              ))}
+            <div className="absolute z-20 w-full bottom-full mb-2 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-[#E5E5EA] p-3 overflow-hidden">
+              <div className="grid grid-cols-4 gap-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      handleChange({ target: { name: 'kategori', value: cat.id } });
+                      setIsCategoryOpen(false);
+                    }}
+                    className={`flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl transition-all ${
+                      formData.kategori === cat.id 
+                        ? 'bg-[#007AFF]/10 ring-1 ring-[#007AFF]/30' 
+                        : 'hover:bg-[#F2F2F7]'
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex items-center justify-center">
+                      <div className="scale-110">{cat.icon}</div>
+                    </div>
+                    <span className="text-[9px] sm:text-[10px] font-bold text-[#1C1C1E] text-center leading-tight">
+                      {cat.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </div>
