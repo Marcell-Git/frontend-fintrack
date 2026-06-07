@@ -84,36 +84,37 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-800 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#0f0c29] text-white relative overflow-hidden">
       {/* Premium Background Elements */}
-      <div className="hidden sm:block absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-400/20 rounded-full blur-[120px] animate-pulse"></div>
-      <div className="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-400/20 rounded-full blur-[120px] animate-pulse delay-700"></div>
+      <div className="hidden sm:block absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-500/15 rounded-full blur-[120px] animate-blob"></div>
+      <div className="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-500/15 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
+      <div className="hidden sm:block absolute top-[40%] right-[30%] w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[120px] animate-blob animation-delay-4000"></div>
 
       <div className="w-full sm:max-w-[440px] relative z-10 min-h-screen sm:min-h-fit flex flex-col justify-center">
-        <div className="bg-white sm:bg-white/90 sm:backdrop-blur-2xl rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-[0_20px_50px_rgba(0,0,0,0.05)] p-8 sm:p-10 border-none sm:border sm:border-white/40 transition-all duration-500 min-h-screen sm:min-h-fit">
+        <div className="bg-white/5 backdrop-blur-2xl rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-2xl sm:shadow-black/30 p-8 sm:p-10 border-none sm:border sm:border-white/10 transition-all duration-500 min-h-screen sm:min-h-fit">
           <div className="mb-8 text-center">
-            <div className="w-16 h-16 text-xl font-black bg-white border border-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/20">
-              <span className="bg-gradient-to-tr from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <div className="w-16 h-16 text-xl font-black glass-heavy rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/20">
+              <span className="bg-linear-to-tr from-purple-400 to-pink-400 bg-clip-text text-transparent">
                 FT
               </span>
             </div>
-            <h1 className="text-4xl font-black text-[#1C1C1E] tracking-tight mb-2">
+            <h1 className="text-4xl font-black text-white tracking-tight mb-2">
               FinTrack
             </h1>
-            <p className="text-[#8E8E93] text-sm font-medium px-4">
+            <p className="text-white/60 text-sm font-medium px-4">
               Mulai kelola keuanganmu dengan lebih modern! ✨
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {errors.general && (
-              <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded text-sm mb-4">
+              <div className="glass border-l-4 border-red-400 text-red-300 p-4 rounded text-sm mb-4">
                 <p>{errors.general}</p>
               </div>
             )}
 
             <div className="group relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1 transition-colors group-focus-within:text-indigo-600">
+              <label className="block text-sm font-medium text-white/70 mb-1 transition-colors group-focus-within:text-purple-400">
                 Username
               </label>
               <input
@@ -121,16 +122,16 @@ const Register = () => {
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                className={`block w-full px-5 py-4 rounded-2xl border-none ${errors.username ? "ring-2 ring-red-500" : "focus:ring-2 focus:ring-indigo-500"} bg-[#F2F2F7] focus:bg-white transition-all duration-300 outline-none text-base font-medium`}
+                className={`block w-full px-5 py-4 rounded-2xl border ${errors.username ? "border-red-400/50 ring-2 ring-red-500/30" : "border-white/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-white placeholder-white/30`}
                 placeholder="Username unikmu"
               />
               {errors.username && (
-                <p className="mt-1 text-xs text-red-500 font-medium">{errors.username}</p>
+                <p className="mt-1 text-xs text-red-400 font-medium">{errors.username}</p>
               )}
             </div>
 
             <div className="group relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1 transition-colors group-focus-within:text-indigo-600">
+              <label className="block text-sm font-medium text-white/70 mb-1 transition-colors group-focus-within:text-purple-400">
                 Password
               </label>
               <input
@@ -138,16 +139,16 @@ const Register = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`block w-full px-5 py-4 rounded-2xl border-none ${errors.password ? "ring-2 ring-red-500" : "focus:ring-2 focus:ring-indigo-500"} bg-[#F2F2F7] focus:bg-white transition-all duration-300 outline-none text-base font-medium`}
+                className={`block w-full px-5 py-4 rounded-2xl border ${errors.password ? "border-red-400/50 ring-2 ring-red-500/30" : "border-white/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-white placeholder-white/30`}
                 placeholder="Minimal 6 karakter"
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-red-500 font-medium">{errors.password}</p>
+                <p className="mt-1 text-xs text-red-400 font-medium">{errors.password}</p>
               )}
             </div>
 
             <div className="group relative">
-              <label className="block text-sm font-medium text-gray-700 mb-1 transition-colors group-focus-within:text-indigo-600">
+              <label className="block text-sm font-medium text-white/70 mb-1 transition-colors group-focus-within:text-purple-400">
                 Ulangi Password
               </label>
               <input
@@ -155,18 +156,18 @@ const Register = () => {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`block w-full px-5 py-4 rounded-2xl border-none ${errors.confirmPassword ? "ring-2 ring-red-500" : "focus:ring-2 focus:ring-indigo-500"} bg-[#F2F2F7] focus:bg-white transition-all duration-300 outline-none text-base font-medium`}
+                className={`block w-full px-5 py-4 rounded-2xl border ${errors.confirmPassword ? "border-red-400/50 ring-2 ring-red-500/30" : "border-white/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-white placeholder-white/30`}
                 placeholder="Konfirmasi password"
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-500 font-medium">{errors.confirmPassword}</p>
+                <p className="mt-1 text-xs text-red-400 font-medium">{errors.confirmPassword}</p>
               )}
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex justify-center py-4 px-4 rounded-2xl shadow-xl shadow-indigo-500/20 text-base font-bold text-white bg-linear-to-r from-indigo-600 to-purple-600 hover:opacity-90 transform transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-8"
+              className="w-full flex justify-center py-4 px-4 rounded-2xl shadow-xl shadow-purple-500/20 text-base font-bold text-white bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 transform transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-8"
             >
               {isLoading ? (
                 <div className="flex items-center space-x-2">
@@ -180,11 +181,11 @@ const Register = () => {
           </form>
 
           <div className="mt-8 text-center pt-2">
-            <p className="text-sm text-[#8E8E93] font-medium">
+            <p className="text-sm text-white/50 font-medium">
               Sudah punya akun?{" "}
               <Link
                 href="/login"
-                className="font-bold text-indigo-600 hover:text-indigo-500 transition-colors ml-1"
+                className="font-bold text-purple-400 hover:text-purple-300 transition-colors ml-1"
               >
                 Masuk di sini
               </Link>
@@ -193,7 +194,7 @@ const Register = () => {
         </div>
       </div>
 
-      <div className="absolute bottom-4 text-center text-gray-400 text-xs text-opacity-60 w-full">
+      <div className="absolute bottom-4 text-center text-white/30 text-xs w-full">
         © {new Date().getFullYear()} FinTrack. All rights reserved.
       </div>
     </div>

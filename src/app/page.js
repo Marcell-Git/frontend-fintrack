@@ -20,7 +20,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7]">
+    <div className="min-h-screen">
       <Navbar user={user} />
       <DashboardClient initialTransactions={transactions} />
     </div>

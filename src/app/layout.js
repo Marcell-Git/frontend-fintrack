@@ -23,7 +23,7 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: "#4f46e5",
+  themeColor: "#0f0c29",
 };
 
 export default function RootLayout({ children }) {
@@ -37,7 +37,7 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-title" content="FinTrack" />
       </head>
       <body
-        className={`${outfit.variable} font-sans antialiased bg-[#F2F2F7]`}
+        className={`${outfit.variable} font-sans antialiased bg-[#0f0c29] text-white`}
       >
         {children}
       </body>

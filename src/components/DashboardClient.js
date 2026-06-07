@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   FaPlus,
@@ -12,6 +13,7 @@ import {
   FaCoffee,
   FaCalendarCheck,
   FaBox,
+  FaChartPie,
 } from "react-icons/fa";
 import { IoCloseOutline, IoChevronBack, IoChevronForward } from "react-icons/io5";
 
@@ -187,32 +189,39 @@ export default function DashboardClient({ initialTransactions }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] text-[#1C1C1E] font-sans pb-24 lg:pb-10">
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
+    <div className="min-h-screen text-white font-sans pb-24 lg:pb-10 relative">
+      {/* Floating background orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] animate-blob"></div>
+        <div className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-10%] left-[20%] w-[550px] h-[550px] bg-blue-500/10 rounded-full blur-[120px] animate-blob animation-delay-4000"></div>
+      </div>
+
+      <div className="container mx-auto px-4 py-6 max-w-6xl relative z-10">
         
         {/* Centered Month/Year Navigation Header */}
         <header className="flex justify-center items-center mb-10">
-          <div className="flex items-center bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] px-2 py-1.5 rounded-full border border-white">
+          <div className="flex items-center glass-heavy shadow-lg shadow-black/20 px-2 py-1.5 rounded-full">
             <button 
               onClick={handlePrevMonth}
-              className="p-3 hover:bg-[#F2F2F7] rounded-full transition-all active:scale-90"
+              className="p-3 hover:bg-white/10 rounded-full transition-all active:scale-90"
               disabled={isFetching}
             >
-              <IoChevronBack size={18} className="text-[#007AFF]" />
+              <IoChevronBack size={18} className="text-purple-400" />
             </button>
             
             <div className="px-6 text-center min-w-[180px]">
-              <h2 className="text-base font-bold tracking-tight text-[#1C1C1E]">
+              <h2 className="text-base font-bold tracking-tight text-white">
                 {currentDate.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
               </h2>
             </div>
 
             <button 
               onClick={handleNextMonth}
-              className="p-3 hover:bg-[#F2F2F7] rounded-full transition-all active:scale-90"
+              className="p-3 hover:bg-white/10 rounded-full transition-all active:scale-90"
               disabled={isFetching}
             >
-              <IoChevronForward size={18} className="text-[#007AFF]" />
+              <IoChevronForward size={18} className="text-purple-400" />
             </button>
           </div>
         </header>
@@ -221,134 +230,151 @@ export default function DashboardClient({ initialTransactions }) {
           
           <div className="lg:col-span-8 space-y-8">
             
-            {/* Apple Card Style Summary with Gradient */}
-            <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 rounded-[2rem] shadow-2xl shadow-indigo-200/50 overflow-hidden text-white relative">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/20 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl"></div>
-              
-              <div className="p-8 relative z-10">
-                <p className="text-[10px] font-bold text-indigo-100/80 uppercase tracking-widest mb-2">Total Spent</p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-semibold text-indigo-200">Rp</span>
-                  <h2 className="text-5xl font-bold tracking-tight">
-                    {totalAmount.toLocaleString("id-ID")}
-                  </h2>
-                </div>
-
-                <div className="mt-8 flex gap-3 overflow-x-auto no-scrollbar py-2">
-                  {categoryStats.map((cat, i) => (
-                    <div key={i} className="flex-none bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl flex items-center gap-3 border border-white/10">
-                      <div className="bg-white p-1.5 rounded-lg shadow-sm">{cat.icon}</div>
-                      <div>
-                        <p className="text-[10px] font-bold text-indigo-100/70 uppercase leading-none mb-1">{cat.name}</p>
-                        <p className="text-xs font-bold leading-none text-white">Rp{cat.amount.toLocaleString("id-ID")}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Progress Bar Group */}
-              <div className="bg-black/10 px-8 py-4 flex gap-1">
-                {categoryStats.map((cat, i) => (
-                  <div 
-                    key={i} 
-                    className={`h-1.5 first:rounded-l-full last:rounded-r-full ${cat.color}`} 
-                    style={{ width: `${cat.percentage}%` }}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Apple Style Grouped List (History) */}
-            <div>
-              <div className="flex justify-between items-center mb-4 px-2">
-                <h3 className="text-xl font-bold">Activity</h3>
-              </div>
-              
-              <div className="bg-white rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.04)] overflow-hidden">
-                {transactions.length === 0 ? (
-                  <div className="py-20 text-center text-[#8E8E93]">
-                    <p className="font-medium italic">No transactions yet</p>
+            {isFetching ? (
+              <SkeletonSummary />
+            ) : (
+              <div className="bg-linear-to-br from-[#1a0533] via-[#4c1d95] to-[#7c3aed] rounded-[2rem] shadow-2xl shadow-purple-900/50 overflow-hidden text-white relative">
+                <div className="absolute top-0 right-0 w-72 h-72 bg-pink-500/20 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-56 h-56 bg-purple-500/20 rounded-full translate-y-1/3 -translate-x-1/4 blur-3xl"></div>
+                
+                <div className="p-8 relative z-10">
+                  <p className="text-[10px] font-bold text-purple-200/80 uppercase tracking-widest mb-2">Total Spent</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-semibold text-purple-200">Rp</span>
+                    <h2 className="text-5xl font-bold tracking-tight">
+                      {totalAmount.toLocaleString("id-ID")}
+                    </h2>
                   </div>
-                ) : (
-                  <div className="">
-                    {sortedDates.map((dateKey) => (
-                      <div key={dateKey}>
-                        <div className="bg-[#F2F2F7]/50 px-5 py-2 border-y border-[#F2F2F7] first:border-t-0 flex justify-between items-center">
-                          <p className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest">
-                            {formatDateLabel(dateKey)}
-                          </p>
-                          <p className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest">
-                            Total: Rp{groupedTransactions[dateKey].reduce((sum, item) => sum + Number(item.jumlah), 0).toLocaleString("id-ID")}
-                          </p>
-                        </div>
-                        <div className="divide-y divide-[#F2F2F7]">
-                          {groupedTransactions[dateKey].map((item) => (
-                            <div 
-                              key={item.id}
-                              className="flex items-center justify-between p-5 hover:bg-[#F2F2F7]/50 transition-colors active:bg-[#F2F2F7]"
-                            >
-                              <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-[#F2F2F7] flex items-center justify-center">
-                                  {categoryIcons[item.kategori] || <FaEllipsisH className="text-[#8E8E93]" />}
-                                </div>
-                                <div>
-                                  <p className="font-semibold text-[#1C1C1E]">{item.deskripsi || item.kategori}</p>
-                                  <p className="text-[#8E8E93] text-xs font-medium capitalize">
-                                    {item.kategori}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <p className="font-bold text-[#FF3B30] text-sm">
-                                  -Rp{Number(item.jumlah).toLocaleString("id-ID")}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
+
+                  <div className="mt-8 flex gap-3 overflow-x-auto no-scrollbar py-2">
+                    {categoryStats.map((cat, i) => (
+                      <div key={i} className="flex-none glass-heavy px-4 py-3 rounded-2xl flex items-center gap-3">
+                        <div className="glass p-1.5 rounded-lg">{cat.icon}</div>
+                        <div>
+                          <p className="text-[10px] font-bold text-white/60 uppercase leading-none mb-1">{cat.name}</p>
+                          <p className="text-xs font-bold leading-none text-white">Rp{cat.amount.toLocaleString("id-ID")}</p>
                         </div>
                       </div>
                     ))}
                   </div>
-                )}
+                </div>
+                
+                {/* Progress Bar Group */}
+                <div className="bg-black/20 px-8 py-4 flex gap-1">
+                  {categoryStats.map((cat, i) => (
+                    <div 
+                      key={i} 
+                      className={`h-1.5 first:rounded-l-full last:rounded-r-full ${cat.color}`} 
+                      style={{ width: `${cat.percentage}%` }}
+                    />
+                  ))}
+                </div>
               </div>
+            )}
+
+            {/* Glass Style Grouped List (History) */}
+            <div>
+              <div className="flex justify-between items-center mb-4 px-2">
+                <h3 className="text-xl font-bold text-white">Activity</h3>
+              </div>
+              
+              {isFetching ? (
+                <SkeletonActivity />
+              ) : (
+                <div className="glass-heavy rounded-[2rem] shadow-xl shadow-black/20 overflow-hidden">
+                  {transactions.length === 0 ? (
+                    <div className="py-20 text-center text-white/40">
+                      <p className="font-medium italic">No transactions yet</p>
+                    </div>
+                  ) : (
+                    <div className="">
+                      {sortedDates.map((dateKey) => (
+                        <div key={dateKey}>
+                          <div className="bg-white/[0.03] px-5 py-2 border-y border-white/5 first:border-t-0 flex justify-between items-center">
+                            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                              {formatDateLabel(dateKey)}
+                            </p>
+                            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                              Total: Rp{groupedTransactions[dateKey].reduce((sum, item) => sum + Number(item.jumlah), 0).toLocaleString("id-ID")}
+                            </p>
+                          </div>
+                          <div className="divide-y divide-white/5">
+                            {groupedTransactions[dateKey].map((item) => (
+                              <div 
+                                key={item.id}
+                                className="flex items-center justify-between p-5 hover:bg-white/5 transition-colors active:bg-white/10"
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div className="w-12 h-12 rounded-xl glass flex items-center justify-center">
+                                    {categoryIcons[item.kategori] || <FaEllipsisH className="text-white/60" />}
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-white">{item.deskripsi || item.kategori}</p>
+                                    <p className="text-white/50 text-xs font-medium capitalize">
+                                      {item.kategori}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <p className="font-bold text-red-400 text-sm">
+                                    -Rp{Number(item.jumlah).toLocaleString("id-ID")}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Desktop Form */}
           <div className="hidden lg:block lg:col-span-4">
-            <div className="bg-white rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.04)] p-8 sticky top-8">
-              <h3 className="text-xl font-bold mb-6">New Transaction</h3>
+            <div className="glass-heavy rounded-[2rem] shadow-xl shadow-black/20 p-8 sticky top-28">
+              <h3 className="text-xl font-bold text-white mb-6">New Transaction</h3>
               <FormContent formData={formData} handleChange={handleChange} handleSubmit={handleSubmit} isSubmitting={isSubmitting} formatRupiah={formatRupiah} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* iOS Style Floating Button */}
+      {/* Glass FAB - Add Transaction */}
       <div className="lg:hidden fixed bottom-8 right-6 z-50">
         <button
           onClick={() => setIsFormOpen(true)}
-          className="w-14 h-14 bg-[#007AFF] text-white rounded-full shadow-lg shadow-[#007AFF]/30 flex items-center justify-center active:scale-90 transition-all"
+          className="w-14 h-14 bg-linear-to-tr from-purple-500 to-pink-500 text-white rounded-full shadow-lg shadow-purple-500/30 flex items-center justify-center active:scale-90 transition-all"
         >
           <FaPlus size={22} />
         </button>
       </div>
 
-      {/* iOS Style Bottom Sheet */}
+      {/* Glass FAB - Statistik (mobile only) */}
+      <div className="lg:hidden fixed bottom-8 left-6 z-50">
+        <Link
+          href="/statistik"
+          className="w-14 h-14 glass-heavy text-purple-400 rounded-full shadow-lg shadow-black/20 flex items-center justify-center active:scale-90 transition-all hover:bg-white/20"
+        >
+          <FaChartPie size={22} />
+        </Link>
+      </div>
+
+      {/* Glass Bottom Sheet */}
       <div 
-        className={`lg:hidden fixed inset-0 z-[60] bg-black/30 backdrop-blur-[2px] transition-opacity duration-300 ${isFormOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        className={`lg:hidden fixed inset-0 z-[60] bg-black/60 backdrop-blur-md transition-opacity duration-300 ${isFormOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         onClick={() => setIsFormOpen(false)}
       >
         <div 
-          className={`absolute bottom-0 left-0 right-0 bg-[#F2F2F7] rounded-t-[2.5rem] p-8 pb-12 transition-transform duration-500 ease-out transform ${isFormOpen ? "translate-y-0" : "translate-y-full"}`}
+          className={`absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-2xl rounded-t-[2.5rem] border-t border-white/10 p-8 pb-12 transition-transform duration-500 ease-out transform ${isFormOpen ? "translate-y-0" : "translate-y-full"}`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="w-10 h-1 bg-[#C7C7CC] rounded-full mx-auto mb-6"></div>
+          <div className="w-10 h-1 bg-white/30 rounded-full mx-auto mb-6"></div>
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold">New Transaction</h2>
-            <button onClick={() => setIsFormOpen(false)} className="p-2 bg-[#E5E5EA] rounded-full text-[#8E8E93]">
+            <h2 className="text-2xl font-bold text-white">New Transaction</h2>
+            <button onClick={() => setIsFormOpen(false)} className="p-2 glass rounded-full text-white/60 hover:glass-heavy">
               <IoCloseOutline size={24} />
             </button>
           </div>
@@ -363,6 +389,43 @@ export default function DashboardClient({ initialTransactions }) {
     </div>
   );
 }
+
+const SkeletonSummary = () => (
+  <div className="bg-linear-to-br from-[#1a0533] via-[#4c1d95] to-[#7c3aed] rounded-[2rem] shadow-2xl shadow-purple-900/50 overflow-hidden">
+    <div className="p-8 space-y-6">
+      <div className="h-3 w-24 bg-white/10 rounded-lg animate-pulse" />
+      <div className="h-11 w-56 bg-white/10 rounded-xl animate-pulse" />
+      <div className="flex gap-3">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-14 w-28 bg-white/10 rounded-2xl animate-pulse" />
+        ))}
+      </div>
+    </div>
+    <div className="bg-black/20 px-8 py-4">
+      <div className="h-1.5 w-full bg-white/10 rounded-full animate-pulse" />
+    </div>
+  </div>
+);
+
+const SkeletonActivity = () => (
+  <div className="glass-heavy rounded-[2rem] shadow-xl shadow-black/20 overflow-hidden">
+    <div className="px-5 py-3">
+      <div className="h-3 w-32 bg-white/10 rounded-lg animate-pulse" />
+    </div>
+    {[...Array(3)].map((_, i) => (
+      <div key={i} className="flex items-center justify-between p-5 border-t border-white/5">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-white/10 animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-4 w-40 bg-white/10 rounded-lg animate-pulse" />
+            <div className="h-3 w-24 bg-white/10 rounded-lg animate-pulse" />
+          </div>
+        </div>
+        <div className="h-4 w-24 bg-white/10 rounded-lg animate-pulse" />
+      </div>
+    ))}
+  </div>
+);
 
 const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, formatRupiah }) => {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
@@ -383,32 +446,32 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-1">
-        <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Description</label>
+        <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest ml-1">Description</label>
         <input
           name="deskripsi"
           value={formData.deskripsi}
           onChange={handleChange}
           type="text"
           placeholder="Coffee, Lunch, etc."
-          className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-base"
+          className="w-full px-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-base text-white placeholder-white/30"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
-          <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Date</label>
+          <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest ml-1">Date</label>
           <input
             name="tanggal"
             value={formData.tanggal}
             onChange={handleChange}
             type="date"
-            className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-base"
+            className="w-full px-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-base text-white [color-scheme:dark]"
           />
         </div>
         <div className="space-y-1">
-          <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Amount</label>
+          <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest ml-1">Amount</label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-[#8E8E93] select-none">Rp</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-white/40 select-none">Rp</span>
             <input
               name="jumlah"
               value={formData.jumlah ? formatRupiah(formData.jumlah) : ""}
@@ -416,19 +479,19 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
               type="text"
               inputMode="numeric"
               placeholder="0"
-              className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-bold text-base"
+              className="w-full pl-11 pr-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-bold text-base text-white placeholder-white/30"
             />
           </div>
         </div>
       </div>
 
       <div className="space-y-1">
-        <label className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-widest ml-1">Category</label>
+        <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest ml-1">Category</label>
         <div className="relative">
           <button
             type="button"
             onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-            className="w-full px-4 py-3.5 rounded-xl bg-[#F2F2F7] border-none focus:ring-2 focus:ring-[#007AFF] transition-all outline-none font-medium text-base flex items-center justify-between"
+            className="w-full px-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-base text-white flex items-center justify-between"
           >
             {selectedCategory ? (
               <div className="flex items-center gap-3">
@@ -436,13 +499,13 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
                 <span>{selectedCategory.label}</span>
               </div>
             ) : (
-              <span className="text-[#8E8E93]">Select Category</span>
+              <span className="text-white/40">Select Category</span>
             )}
-            <IoChevronForward className={`transition-transform duration-200 text-[#8E8E93] ${isCategoryOpen ? 'rotate-90' : ''}`} />
+            <IoChevronForward className={`transition-transform duration-200 text-white/40 ${isCategoryOpen ? 'rotate-90' : ''}`} />
           </button>
 
           {isCategoryOpen && (
-            <div className="absolute z-20 w-full bottom-full mb-2 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-[#E5E5EA] p-3 overflow-hidden">
+            <div className="absolute z-20 w-full bottom-full mb-2 bg-black/60 backdrop-blur-2xl rounded-2xl shadow-2xl shadow-black/30 border border-white/10 p-3 overflow-hidden">
               <div className="grid grid-cols-4 gap-2">
                 {categories.map((cat) => (
                   <button
@@ -454,14 +517,14 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
                     }}
                     className={`flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl transition-all ${
                       formData.kategori === cat.id 
-                        ? 'bg-[#007AFF]/10 ring-1 ring-[#007AFF]/30' 
-                        : 'hover:bg-[#F2F2F7]'
+                        ? 'bg-purple-500/20 ring-1 ring-purple-400/30' 
+                        : 'hover:bg-white/10'
                     }`}
                   >
-                    <div className="w-8 h-8 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full glass flex items-center justify-center">
                       <div className="scale-110">{cat.icon}</div>
                     </div>
-                    <span className="text-[9px] sm:text-[10px] font-bold text-[#1C1C1E] text-center leading-tight">
+                    <span className="text-[9px] sm:text-[10px] font-bold text-white text-center leading-tight">
                       {cat.label}
                     </span>
                   </button>
@@ -475,7 +538,7 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full bg-[#007AFF] text-white font-bold py-4 rounded-xl shadow-md active:scale-95 transition-all disabled:opacity-50 mt-4"
+        className="w-full bg-linear-to-r from-purple-500 to-pink-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-500/20 active:scale-95 transition-all disabled:opacity-50 mt-4"
       >
         {isSubmitting ? "Saving..." : "Add Transaction"}
       </button>
