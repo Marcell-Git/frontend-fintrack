@@ -131,7 +131,7 @@ export default function StatistikClient({ transactions, year }) {
           </div>
         </div>
 
-        <div className="glass-heavy rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-xl shadow-black/20">
+        <div className="glass-heavy rounded-[2rem] p-3 sm:p-6 md:p-8 shadow-xl shadow-black/20">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h2 className="text-base sm:text-lg font-bold">Distribusi per Kategori</h2>
             <FaChartPie className="text-purple-400 text-base sm:text-lg" />
@@ -147,8 +147,7 @@ export default function StatistikClient({ transactions, year }) {
                 <svg
                   viewBox={`0 0 ${CHART_W} ${CHART_H}`}
                   preserveAspectRatio="xMidYMid meet"
-                  className="w-full h-auto"
-                  style={{ maxHeight: "70vh" }}
+                  className="w-full h-auto max-h-[65vh] sm:max-h-[70vh]"
                 >
                   {visibleBubbles.map((b, i) => (
                     <g key={b.id}>
