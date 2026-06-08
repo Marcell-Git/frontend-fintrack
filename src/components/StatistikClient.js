@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo, useRef } from "react";
 import { pack, hierarchy } from "d3-hierarchy";
@@ -93,20 +93,20 @@ export default function StatistikClient({ transactions, year }) {
     : bubbles;
 
   return (
-    <div className="min-h-screen text-white font-sans relative">
+    <div className="min-h-screen text-[#1a1a2e] font-sans relative">
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] animate-blob"></div>
-        <div className="absolute top-[20%] right-[-10%] w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[-10%] left-[20%] w-[550px] h-[550px] bg-blue-500/10 rounded-full blur-[120px] animate-blob animation-delay-4000"></div>
+        <div className="absolute top-[-15%] left-[-10%] w-[800px] h-[800px] bg-purple-400/25 rounded-full blur-[150px] animate-blob"></div>
+        <div className="absolute top-[15%] right-[-15%] w-[700px] h-[700px] bg-pink-400/25 rounded-full blur-[150px] animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-15%] left-[15%] w-[750px] h-[750px] bg-blue-400/25 rounded-full blur-[150px] animate-blob animation-delay-4000"></div>
       </div>
 
       <div className="container mx-auto px-4 py-4 sm:py-6 max-w-6xl relative z-10">
         <div className="flex items-center gap-3 mb-6">
           <Link
             href="/"
-            className="glass-heavy p-2.5 sm:p-3 rounded-xl hover:bg-white/20 transition-all active:scale-90"
+            className="glass-heavy p-2.5 sm:p-3 rounded-xl hover:bg-black/5 transition-all active:scale-90"
           >
-            <FaArrowLeft size={16} className="text-purple-400" />
+            <FaArrowLeft size={16} className="text-purple-500" />
           </Link>
           <div>
             <h1 className="text-lg sm:text-2xl font-bold leading-tight">Statistik</h1>
@@ -116,30 +116,30 @@ export default function StatistikClient({ transactions, year }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
           <div className="glass-heavy rounded-2xl p-4 sm:p-6">
-            <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Total Tahun Ini</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Total Tahun Ini</p>
             <p className="text-xl sm:text-2xl font-bold mt-2">Rp{formatRupiah(totalYear)}</p>
           </div>
           <div className="glass-heavy rounded-2xl p-4 sm:p-6">
-            <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Rata-rata / Bulan</p>
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Rata-rata / Bulan</p>
             <p className="text-xl sm:text-2xl font-bold mt-2">Rp{formatRupiah(Math.round(totalYear / 12))}</p>
           </div>
           <div className="glass-heavy rounded-2xl p-4 sm:p-6">
-            <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Kategori Terbanyak</p>
-            <p className="text-xl sm:text-2xl font-bold mt-2 text-purple-300">
+            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Kategori Terbanyak</p>
+            <p className="text-xl sm:text-2xl font-bold mt-2 text-purple-600">
               {topCategory ? topCategory.label : "-"}
             </p>
           </div>
         </div>
 
-        <div className="glass-heavy rounded-[2rem] p-3 sm:p-6 md:p-8 shadow-xl shadow-black/20">
+        <div className="glass-heavy rounded-[2rem] p-3 sm:p-6 md:p-8 shadow-xl shadow-black/5">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h2 className="text-base sm:text-lg font-bold">Distribusi per Kategori</h2>
-            <FaChartPie className="text-purple-400 text-base sm:text-lg" />
+            <FaChartPie className="text-purple-500 text-base sm:text-lg" />
           </div>
 
           {bubbles.length === 0 ? (
             <div className="py-16 sm:py-20 text-center">
-              <p className="text-white/40 font-medium italic">Belum ada transaksi tahun ini</p>
+              <p className="text-gray-400 font-medium italic">Belum ada transaksi tahun ini</p>
             </div>
           ) : (
             <>
@@ -198,14 +198,14 @@ export default function StatistikClient({ transactions, year }) {
 
                 {hovered && chartRef.current && (
                   <div
-                    className="absolute glass-heavy rounded-xl px-3 py-2.5 shadow-xl border border-white/10 pointer-events-none z-20"
+                    className="absolute glass-heavy rounded-xl px-3 py-2.5 shadow-xl border border-black/10 pointer-events-none z-20"
                     style={{
                       left: Math.min(tooltipPos.x + 16, (chartRef.current?.offsetWidth || 300) - 150),
                       top: Math.max(tooltipPos.y - 70, 0) + 10,
                     }}
                   >
-                    <p className="text-xs font-bold text-white/50 uppercase tracking-widest">{hovered.label}</p>
-                    <p className="text-sm font-bold text-purple-300 mt-0.5">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{hovered.label}</p>
+                    <p className="text-sm font-bold text-purple-600 mt-0.5">
                       Rp{formatRupiah(hovered.value)}
                     </p>
                   </div>
@@ -216,7 +216,7 @@ export default function StatistikClient({ transactions, year }) {
                 <button
                   onClick={() => setFilterCat(null)}
                   className={`flex-none glass rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-xs transition-all whitespace-nowrap ${
-                    filterCat === null ? "ring-1 ring-white/30 bg-white/10" : "hover:bg-white/5"
+                    filterCat === null ? "ring-1 ring-gray-300 bg-black/5" : "hover:bg-black/5"
                   }`}
                 >
                   Semua
@@ -226,11 +226,11 @@ export default function StatistikClient({ transactions, year }) {
                     key={cat.id}
                     onClick={() => setFilterCat(filterCat === cat.id ? null : cat.id)}
                     className={`flex-none flex items-center gap-1.5 glass rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-xs transition-all whitespace-nowrap ${
-                      filterCat === cat.id ? "ring-1 ring-white/30 bg-white/10" : "hover:bg-white/5"
+                      filterCat === cat.id ? "ring-1 ring-gray-300 bg-black/5" : "hover:bg-black/5"
                     }`}
                   >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
-                    <span className="text-white/70">{cat.label}</span>
+                    <span className="text-gray-600">{cat.label}</span>
                   </button>
                 ))}
               </div>

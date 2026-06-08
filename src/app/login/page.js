@@ -87,37 +87,37 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0f0c29] text-white relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] text-[#1a1a2e] relative overflow-hidden">
       {/* Premium Background Elements */}
-      <div className="hidden sm:block absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-500/15 rounded-full blur-[120px] animate-blob"></div>
-      <div className="hidden sm:block absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-500/15 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
-      <div className="hidden sm:block absolute top-[40%] right-[20%] w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[120px] animate-blob animation-delay-4000"></div>
+      <div className="hidden sm:block absolute top-[-15%] left-[-10%] w-[800px] h-[800px] bg-purple-400/25 rounded-full blur-[150px] animate-blob"></div>
+      <div className="hidden sm:block absolute bottom-[-15%] right-[-10%] w-[700px] h-[700px] bg-pink-400/25 rounded-full blur-[150px] animate-blob animation-delay-2000"></div>
+      <div className="hidden sm:block absolute top-[30%] right-[15%] w-[600px] h-[600px] bg-blue-400/25 rounded-full blur-[150px] animate-blob animation-delay-4000"></div>
 
       <div className="w-full sm:max-w-[440px] relative z-10 min-h-screen sm:min-h-fit flex flex-col justify-center">
-        <div className="bg-white/5 backdrop-blur-2xl rounded-none sm:rounded-[2.5rem] shadow-none sm:shadow-2xl sm:shadow-black/30 p-8 sm:p-10 border-none sm:border sm:border-white/10 transition-all duration-500 min-h-screen sm:min-h-fit">
+        <div className="glass-heavy rounded-none sm:rounded-[2.5rem] shadow-lg sm:shadow-xl sm:shadow-black/5 p-8 sm:p-10 transition-all duration-500 min-h-screen sm:min-h-fit">
           <div className="mb-8 text-center">
             <div className="w-16 h-16 text-xl font-black glass-heavy rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/20">
-              <span className="bg-linear-to-tr from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              <span className="bg-linear-to-tr from-purple-500 to-pink-500 bg-clip-text text-transparent">
                 FT
               </span>
             </div>
-            <h1 className="text-4xl font-black text-white tracking-tight mb-2">
+            <h1 className="text-4xl font-black text-[#1a1a2e] tracking-tight mb-2">
               FinTrack
             </h1>
-            <p className="text-white/60 text-sm font-medium px-4">
+            <p className="text-gray-500 text-sm font-medium px-4">
               Kelola keuanganmu dengan lebih modern dan asik 🚀
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {successMessage && (
-              <div className="glass border-l-4 border-green-400 text-green-300 p-4 rounded text-sm mb-4">
+              <div className="glass border-l-4 border-green-400 text-green-600 p-4 rounded text-sm mb-4">
                 <p>{successMessage}</p>
               </div>
             )}
 
             {errors.general && (
-              <div className="glass border-l-4 border-red-400 text-red-300 p-4 rounded text-sm mb-4">
+              <div className="glass border-l-4 border-red-400 text-red-500 p-4 rounded text-sm mb-4">
                 <p>{errors.general}</p>
               </div>
             )}
@@ -125,7 +125,7 @@ const LoginForm = () => {
             <div className="group relative">
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-white/70 mb-1 transition-colors group-focus-within:text-purple-400"
+                className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600"
               >
                 Username
               </label>
@@ -135,11 +135,11 @@ const LoginForm = () => {
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
-                className={`block w-full px-5 py-4 rounded-2xl border ${errors.username ? "border-red-400/50 ring-2 ring-red-500/30" : "border-white/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-white placeholder-white/30`}
+                className={`block w-full px-5 py-4 rounded-2xl border ${errors.username ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
                 placeholder="Username kamu"
               />
               {errors.username && (
-                <p className="mt-1 text-xs text-red-400 font-medium">
+                <p className="mt-1 text-xs text-red-500 font-medium">
                   {errors.username}
                 </p>
               )}
@@ -148,7 +148,7 @@ const LoginForm = () => {
             <div className="group relative">
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-white/70 mb-1 transition-colors group-focus-within:text-purple-400"
+                className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600"
               >
                 Password
               </label>
@@ -158,11 +158,11 @@ const LoginForm = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`block w-full px-5 py-4 rounded-2xl border ${errors.password ? "border-red-400/50 ring-2 ring-red-500/30" : "border-white/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-white placeholder-white/30`}
+                className={`block w-full px-5 py-4 rounded-2xl border ${errors.password ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
                 placeholder="Minimal 6 karakter"
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-red-400 font-medium">
+                <p className="mt-1 text-xs text-red-500 font-medium">
                   {errors.password}
                 </p>
               )}
@@ -204,11 +204,11 @@ const LoginForm = () => {
           </form>
 
           <div className="mt-8 text-center pt-2">
-            <p className="text-sm text-white/50 font-medium">
+            <p className="text-sm text-gray-500 font-medium">
               Belum punya akun?{" "}
               <Link
                 href="/register"
-                className="font-bold text-purple-400 hover:text-purple-300 transition-colors ml-1"
+                className="font-bold text-purple-600 hover:text-purple-500 transition-colors ml-1"
               >
                 Daftar sekarang
               </Link>
@@ -224,8 +224,8 @@ export default function Login() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#0f0c29]">
-          <div className="animate-spin h-10 w-10 border-4 border-purple-400 border-t-transparent rounded-full"></div>
+        <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7]">
+          <div className="animate-spin h-10 w-10 border-4 border-purple-500 border-t-transparent rounded-full"></div>
         </div>
       }
     >

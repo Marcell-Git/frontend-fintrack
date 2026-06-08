@@ -5,11 +5,11 @@
   --animate-blob: blob 7s infinite;
   --animate-gradient: gradient 8s ease infinite;
 
-  --color-glass-light: rgba(255, 255, 255, 0.05);
-  --color-glass-medium: rgba(255, 255, 255, 0.08);
-  --color-glass-heavy: rgba(255, 255, 255, 0.12);
-  --color-glass-border: rgba(255, 255, 255, 0.08);
-  --color-glass-border-hover: rgba(255, 255, 255, 0.15);
+  --color-glass-light: rgba(255, 255, 255, 0.15);
+  --color-glass-medium: rgba(255, 255, 255, 0.22);
+  --color-glass-heavy: rgba(255, 255, 255, 0.3);
+  --color-glass-border: rgba(0, 0, 0, 0.06);
+  --color-glass-border-hover: rgba(0, 0, 0, 0.12);
 
   @keyframes blob {
     0% { transform: translate(0px, 0px) scale(1); }
@@ -35,40 +35,44 @@
 
 @utility glass {
   background-color: var(--color-glass-medium);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
   border: 1px solid var(--color-glass-border);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
 
 @utility glass-heavy {
   background-color: var(--color-glass-heavy);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
+  backdrop-filter: blur(36px);
+  -webkit-backdrop-filter: blur(36px);
   border: 1px solid var(--color-glass-border-hover);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
 @utility glass-light {
   background-color: var(--color-glass-light);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--color-glass-border);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
 }
 
 @utility glass-input {
-  background-color: var(--color-glass-light);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--color-glass-border);
 }
 
 @utility glass-input-focus {
-  background-color: var(--color-glass-medium);
+  background-color: rgba(255, 255, 255, 0.5);
   border-color: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -80,6 +84,6 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
 }
