@@ -245,7 +245,7 @@ export default function DashboardClient({ initialTransactions }) {
 
                   <div className="mt-8 flex gap-3 overflow-x-auto no-scrollbar py-2">
                     {categoryStats.map((cat, i) => (
-                      <div key={i} className="flex-none glass-heavy px-4 py-3 rounded-2xl flex items-center gap-3">
+                      <div key={i} className="flex-none bg-white/30 backdrop-blur-[36px] border border-black/[0.12] px-4 py-3 rounded-2xl flex items-center gap-3">
                         <div className="glass p-1.5 rounded-lg">{cat.icon}</div>
                         <div>
                           <p className="text-[10px] font-bold text-gray-500 uppercase leading-none mb-1">{cat.name}</p>
