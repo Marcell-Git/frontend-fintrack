@@ -39,6 +39,24 @@ export default function DashboardClient({ initialTransactions }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Prevent body scroll when bottom sheet is open (iOS fix)
+  useEffect(() => {
+    if (isFormOpen) {
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+    };
+  }, [isFormOpen]);
+
   const fetchTransactions = async (date) => {
     setIsFetching(true);
     try {
@@ -115,7 +133,6 @@ export default function DashboardClient({ initialTransactions }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "jumlah") {
-      // Remove any non-numeric characters to store raw value
       const numericValue = value.replace(/\D/g, "");
       setFormData({ ...formData, [name]: numericValue });
     } else {
@@ -339,8 +356,11 @@ export default function DashboardClient({ initialTransactions }) {
         </div>
       </div>
 
-      {/* Glass FAB - Add Transaction */}
-      <div className="lg:hidden fixed bottom-8 right-6 z-50">
+      {/* Glass FAB - Add Transaction (safe area aware) */}
+      <div
+        className="lg:hidden fixed right-6 z-50"
+        style={{ bottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         <button
           onClick={() => setIsFormOpen(true)}
           className="w-14 h-14 bg-linear-to-tr from-purple-500 to-pink-500 text-white rounded-full shadow-lg shadow-purple-500/20 flex items-center justify-center active:scale-90 transition-all"
@@ -349,8 +369,11 @@ export default function DashboardClient({ initialTransactions }) {
         </button>
       </div>
 
-      {/* Glass FAB - Statistik (mobile only) */}
-      <div className="lg:hidden fixed bottom-8 left-6 z-50">
+      {/* Glass FAB - Statistik (mobile only, safe area aware) */}
+      <div
+        className="lg:hidden fixed left-6 z-50"
+        style={{ bottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
+      >
         <Link
           href="/statistik"
           className="w-14 h-14 glass-heavy text-purple-600 rounded-full shadow-lg shadow-black/5 flex items-center justify-center active:scale-90 transition-all hover:bg-black/10"
@@ -359,23 +382,59 @@ export default function DashboardClient({ initialTransactions }) {
         </Link>
       </div>
 
-      {/* Glass Bottom Sheet */}
-      <div 
-        className={`lg:hidden fixed inset-0 z-[60] bg-black/30 backdrop-blur-sm transition-opacity duration-300 ${isFormOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+      {/* Glass Bottom Sheet — iOS PWA fixed */}
+      <div
+        className={`lg:hidden fixed inset-0 z-[60] transition-all duration-300 ${isFormOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        style={{
+          backgroundColor: isFormOpen ? 'rgba(0,0,0,0.4)' : 'transparent',
+          backdropFilter: isFormOpen ? 'blur(4px)' : 'none',
+          WebkitBackdropFilter: isFormOpen ? 'blur(4px)' : 'none',
+        }}
         onClick={() => setIsFormOpen(false)}
       >
-        <div 
-          className={`absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl rounded-t-[2.5rem] border-t border-black/10 p-8 pb-12 transition-transform duration-500 ease-out transform ${isFormOpen ? "translate-y-0" : "translate-y-full"}`}
+        <div
+          className={`absolute bottom-0 left-0 right-0 rounded-t-[2.5rem] border-t border-black/10 transition-transform duration-500 ease-out ${isFormOpen ? "translate-y-0" : "translate-y-full"}`}
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.94)',
+            backdropFilter: 'blur(40px)',
+            WebkitBackdropFilter: 'blur(40px)',
+            maxHeight: '90dvh',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="w-10 h-1 bg-white/30 rounded-full mx-auto mb-6"></div>
-          <div className="flex justify-between items-center mb-8">
+          {/* Drag handle */}
+          <div className="flex-none pt-3 pb-1 flex justify-center">
+            <div className="w-10 h-1 bg-black/20 rounded-full" />
+          </div>
+
+          {/* Header */}
+          <div className="flex-none flex justify-between items-center px-8 py-5">
             <h2 className="text-2xl font-bold text-[#1a1a2e]">Tambah Transaksi</h2>
-            <button onClick={() => setIsFormOpen(false)} className="p-2 glass rounded-full text-gray-500 hover:glass-heavy">
+            <button
+              onClick={() => setIsFormOpen(false)}
+              className="p-2 glass rounded-full text-gray-500 hover:glass-heavy active:scale-90 transition-all"
+            >
               <IoCloseOutline size={24} />
             </button>
           </div>
-          <FormContent formData={formData} handleChange={handleChange} handleSubmit={handleSubmit} isSubmitting={isSubmitting} formatRupiah={formatRupiah} />
+
+          {/* Scrollable form content */}
+          <div
+            className="flex-1 overflow-y-auto px-8"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            <FormContent
+              formData={formData}
+              handleChange={handleChange}
+              handleSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+              formatRupiah={formatRupiah}
+            />
+            {/* Bottom padding respects iPhone home indicator */}
+            <div style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }} />
+          </div>
         </div>
       </div>
 
@@ -441,7 +500,7 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
   const selectedCategory = categories.find(c => c.id === formData.kategori);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5 pb-2">
       <div className="space-y-1">
         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Keterangan</label>
         <input
@@ -454,7 +513,7 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
           <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Tanggal</label>
           <input
@@ -462,7 +521,7 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
             value={formData.tanggal}
             onChange={handleChange}
             type="date"
-            className="w-full px-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-base text-[#1a1a2e] [color-scheme:light]"
+            className="w-full px-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-sm text-[#1a1a2e] [color-scheme:light]"
           />
         </div>
         <div className="space-y-1">
@@ -515,13 +574,13 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
                     className={`flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl transition-all ${
                       formData.kategori === cat.id 
                         ? 'bg-purple-50 ring-1 ring-purple-300' 
-                        : 'hover:bg-black/5'
+                        : 'hover:bg-black/5 active:bg-black/10'
                     }`}
                   >
                     <div className="w-8 h-8 rounded-full glass flex items-center justify-center">
                       <div className="scale-110">{cat.icon}</div>
                     </div>
-                    <span className="text-[9px] sm:text-[10px] font-bold text-[#1a1a2e] text-center leading-tight">
+                    <span className="text-[9px] font-bold text-[#1a1a2e] text-center leading-tight">
                       {cat.label}
                     </span>
                   </button>
@@ -535,7 +594,7 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full bg-linear-to-r from-purple-500 to-pink-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-500/20 active:scale-95 transition-all disabled:opacity-50 mt-4"
+        className="w-full bg-linear-to-r from-purple-500 to-pink-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-500/20 active:scale-95 transition-all disabled:opacity-50 mt-2"
       >
         {isSubmitting ? "Lagi nyimpen nih..." : "Tambah Sekarang"}
       </button>

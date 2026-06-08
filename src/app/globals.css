@@ -87,3 +87,21 @@
   background-color: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
 }
+
+/* iOS PWA: support safe area insets */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* Ensure tap highlight is removed on iOS for interactive elements */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Fix overscroll behavior for iOS PWA */
+html, body {
+  overscroll-behavior: none;
+}
