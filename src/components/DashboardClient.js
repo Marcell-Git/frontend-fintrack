@@ -534,7 +534,7 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
       <div className="space-y-1">
         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Jumlah</label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400 select-none">Rp</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400 select-none z-10">Rp</span>
           <input
             name="jumlah"
             value={formData.jumlah ? formatRupiah(formData.jumlah) : ""}
