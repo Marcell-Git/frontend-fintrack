@@ -513,31 +513,37 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Tanggal</label>
+      <div className="space-y-1">
+        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Tanggal</label>
+        <input
+          name="tanggal"
+          value={formData.tanggal}
+          onChange={handleChange}
+          type="date"
+          className="w-full px-4 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-sm text-[#1a1a2e] [color-scheme:light]"
+          style={{
+            WebkitAppearance: 'none',
+            appearance: 'none',
+            height: '52px',
+            lineHeight: '52px',
+            display: 'block',
+          }}
+        />
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Jumlah</label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400 select-none">Rp</span>
           <input
-            name="tanggal"
-            value={formData.tanggal}
+            name="jumlah"
+            value={formData.jumlah ? formatRupiah(formData.jumlah) : ""}
             onChange={handleChange}
-            type="date"
-            className="w-full px-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-sm text-[#1a1a2e] [color-scheme:light]"
+            type="text"
+            inputMode="numeric"
+            placeholder="0"
+            className="w-full pl-11 pr-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-bold text-base text-[#1a1a2e] placeholder-gray-400"
           />
-        </div>
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Jumlah</label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400 select-none">Rp</span>
-            <input
-              name="jumlah"
-              value={formData.jumlah ? formatRupiah(formData.jumlah) : ""}
-              onChange={handleChange}
-              type="text"
-              inputMode="numeric"
-              placeholder="0"
-              className="w-full pl-11 pr-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-bold text-base text-[#1a1a2e] placeholder-gray-400"
-            />
-          </div>
         </div>
       </div>
 
