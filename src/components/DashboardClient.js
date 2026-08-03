@@ -14,6 +14,7 @@ import {
   FaCalendarCheck,
   FaBox,
   FaChartPie,
+  FaTrash,
 } from "react-icons/fa";
 import { IoCloseOutline, IoChevronBack, IoChevronForward } from "react-icons/io5";
 
@@ -177,6 +178,25 @@ export default function DashboardClient({ initialTransactions }) {
     }
   };
 
+  const handleDeleteTransaction = async (id) => {
+    if (!confirm("Yakin ingin menghapus pengeluaran ini?")) return;
+    
+    try {
+      const res = await fetch(`/api/pengeluaran/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setTransactions(transactions.filter(t => t.id !== id));
+        router.refresh();
+      } else {
+        alert("Gagal menghapus data");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Gagal menghapus data");
+    }
+  };
+
   // Grouping transactions by date
   const groupedTransactions = transactions.reduce((acc, transaction) => {
     const dateKey = transaction.tanggal.split('T')[0];
@@ -314,27 +334,12 @@ export default function DashboardClient({ initialTransactions }) {
                           </div>
                           <div className="divide-y divide-black/5">
                             {groupedTransactions[dateKey].map((item) => (
-                              <div 
-                                key={item.id}
-                                className="flex items-center justify-between p-5 hover:bg-black/5 transition-colors active:bg-black/10"
-                              >
-                                <div className="flex items-center gap-4">
-                                  <div className="w-12 h-12 rounded-xl glass flex items-center justify-center">
-                                    {categoryIcons[item.kategori] || <FaEllipsisH className="text-gray-400" />}
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold text-[#1a1a2e]">{item.deskripsi || item.kategori}</p>
-                                    <p className="text-gray-500 text-xs font-medium capitalize">
-                                      {item.kategori}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <p className="font-bold text-red-500 text-sm">
-                                    -Rp{Number(item.jumlah).toLocaleString("id-ID")}
-                                  </p>
-                                </div>
-                              </div>
+                              <SwipeableItem 
+                                key={item.id} 
+                                item={item} 
+                                categoryIcons={categoryIcons} 
+                                onDelete={handleDeleteTransaction} 
+                              />
                             ))}
                           </div>
                         </div>
@@ -482,6 +487,115 @@ const SkeletonActivity = () => (
     ))}
   </div>
 );
+
+const SwipeableItem = ({ item, categoryIcons, onDelete }) => {
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [startX, setStartX] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const swipeThreshold = 50; 
+  const maxSwipe = 80;
+
+  const handleTouchStart = (e) => {
+    setStartX(e.touches[0].clientX);
+    setIsSwiping(true);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isSwiping) return;
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - startX;
+    
+    if (diff > 0) {
+      setSwipeOffset(Math.min(diff, maxSwipe));
+    } else {
+      setSwipeOffset(0);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsSwiping(false);
+    if (swipeOffset > swipeThreshold) {
+      setSwipeOffset(maxSwipe);
+    } else {
+      setSwipeOffset(0);
+    }
+  };
+
+  const handleMouseStart = (e) => {
+    setStartX(e.clientX);
+    setIsSwiping(true);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isSwiping) return;
+    const diff = e.clientX - startX;
+    if (diff > 0) setSwipeOffset(Math.min(diff, maxSwipe));
+  };
+
+  const handleMouseEnd = () => {
+    setIsSwiping(false);
+    if (swipeOffset > swipeThreshold) {
+      setSwipeOffset(maxSwipe);
+    } else {
+      setSwipeOffset(0);
+    }
+  };
+
+  return (
+    <div className="relative overflow-hidden group">
+      <div 
+        className="absolute inset-y-0 left-0 bg-red-500/90 backdrop-blur-md text-white flex items-center justify-center"
+        style={{ 
+          width: `${maxSwipe}px`,
+          transform: `translateX(${swipeOffset - maxSwipe}px)`,
+          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
+        }}
+      >
+        <button 
+          onClick={() => {
+            onDelete(item.id);
+            setSwipeOffset(0);
+          }}
+          className="w-full h-full flex items-center justify-center hover:bg-red-600/90 active:bg-red-700/90 transition-colors"
+        >
+          <FaTrash size={18} />
+        </button>
+      </div>
+
+      <div 
+        className="flex items-center justify-between p-5 hover:bg-black/5 transition-colors active:bg-black/10 cursor-grab active:cursor-grabbing select-none"
+        style={{
+          transform: `translateX(${swipeOffset}px)`,
+          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseStart}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseEnd}
+        onMouseLeave={handleMouseEnd}
+      >
+        <div className="flex items-center gap-4 pointer-events-none">
+          <div className="w-12 h-12 rounded-xl glass flex items-center justify-center">
+            {categoryIcons[item.kategori] || <FaEllipsisH className="text-gray-400" />}
+          </div>
+          <div>
+            <p className="font-semibold text-[#1a1a2e]">{item.deskripsi || item.kategori}</p>
+            <p className="text-gray-500 text-xs font-medium capitalize">
+              {item.kategori}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 pointer-events-none">
+          <p className="font-bold text-red-500 text-sm">
+            -Rp{Number(item.jumlah).toLocaleString("id-ID")}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, formatRupiah }) => {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
