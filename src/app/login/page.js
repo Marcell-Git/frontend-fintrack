@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 const LoginForm = () => {
   const router = useRouter();
@@ -17,12 +18,11 @@ const LoginForm = () => {
   }, [searchParams]);
 
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
 
   const [errors, setErrors] = useState({});
-
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -39,8 +39,8 @@ const LoginForm = () => {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.username.trim()) {
-      newErrors.username = "Waduh, username jangan kosong dong!";
+    if (!formData.email.trim()) {
+      newErrors.email = "Waduh, email jangan kosong dong!";
     }
 
     if (!formData.password) {
@@ -62,18 +62,40 @@ const LoginForm = () => {
     setErrors({});
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Login failed");
+      if (error) {
+        throw new Error("Email atau password salah. Coba lagi ya!");
       }
 
-      // Success
+      const accessToken = data?.session?.access_token;
+      if (!accessToken) {
+        throw new Error("Gagal mendapatkan sesi. Coba lagi nanti!");
+      }
+
+      // Ensure the user row exists in the backend database
+      await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }).catch(() => {});
+
+      // Store session token in cookie (server-side)
+      const cookieRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken }),
+      });
+
+      if (!cookieRes.ok) {
+        throw new Error("Gagal membuat sesi. Coba lagi!");
+      }
+
       router.push("/");
       router.refresh();
     } catch (err) {
@@ -124,23 +146,23 @@ const LoginForm = () => {
 
             <div className="group relative">
               <label
-                htmlFor="username"
+                htmlFor="email"
                 className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600"
               >
-                Username
+                Email
               </label>
               <input
-                type="text"
-                id="username"
-                name="username"
-                value={formData.username}
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
-                className={`block w-full px-5 py-4 rounded-2xl border ${errors.username ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
-                placeholder="Username kamu"
+                className={`block w-full px-5 py-4 rounded-2xl border ${errors.email ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
+                placeholder="kamu@email.com"
               />
-              {errors.username && (
+              {errors.email && (
                 <p className="mt-1 text-xs text-red-500 font-medium">
-                  {errors.username}
+                  {errors.email}
                 </p>
               )}
             </div>

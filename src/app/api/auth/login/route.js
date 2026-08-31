@@ -1,45 +1,33 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-const BACKEND_API_URL = process.env.BACKEND_API_URL || "https://backend-fintrack-gules.vercel.app";
 const COOKIE_NAME = process.env.COOKIE_NAME || "fintrack_session";
 
 export async function POST(request) {
   try {
-    const { username, password } = await request.json();
+    const { accessToken } = await request.json();
 
-    const backendRes = await fetch(`${BACKEND_API_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
-
-    if (!backendRes.ok) {
-      const errorData = await backendRes.json().catch(() => ({}));
+    if (!accessToken) {
       return NextResponse.json(
-        { message: errorData.message || "Login failed" },
-        { status: backendRes.status }
+        { message: "No access token provided" },
+        { status: 400 }
       );
     }
-
-    const data = await backendRes.json();
-    const token = data.token;
-    const user = data.user;
 
     const cookieStore = await cookies();
     cookieStore.set({
       name: COOKIE_NAME,
-      value: token,
+      value: accessToken,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
-      maxAge: 3600, // 1 hour
+      maxAge: 3600,
     });
 
-    return NextResponse.json({ user });
+    return NextResponse.json({ message: "Session created" });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Login cookie error:", error);
     return NextResponse.json(
       { message: "Internal Server Error" },
       { status: 500 }

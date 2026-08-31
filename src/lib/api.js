@@ -11,15 +11,13 @@ export async function getAuthToken() {
 
 export async function fetchWithAuth(endpoint, options = {}) {
   const token = await getAuthToken();
-  
-  // If no token, we can't authenticate. Return null or handle based on caller.
+
   if (!token) {
     return null;
   }
 
   try {
     const url = `${API_BASE_URL}${endpoint}`;
-    console.log(`Fetching: ${url}`);
     const res = await fetch(url, {
       ...options,
       headers: {
@@ -27,15 +25,14 @@ export async function fetchWithAuth(endpoint, options = {}) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      cache: "no-store", // Ensure fresh data by default
+      cache: "no-store",
     });
 
     if (res.status === 401 || res.status === 403) {
-      return null; // Let the page handle redirect if needed
+      return null;
     }
 
     if (!res.ok) {
-      // Allow handling specific errors if needed, or throw
       const errorData = await res.json().catch(() => ({}));
       throw new Error(errorData.message || `API Error: ${res.status} ${res.statusText}`);
     }

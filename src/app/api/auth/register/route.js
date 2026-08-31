@@ -4,12 +4,21 @@ const BACKEND_API_URL = process.env.BACKEND_API_URL || "https://backend-fintrack
 
 export async function POST(request) {
   try {
-    const body = await request.json();
+    const token = request.headers.get("authorization")?.split(" ")[1];
+
+    if (!token) {
+      return NextResponse.json(
+        { message: "No token provided" },
+        { status: 401 }
+      );
+    }
 
     const backendRes = await fetch(`${BACKEND_API_URL}/api/auth/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     const data = await backendRes.json();

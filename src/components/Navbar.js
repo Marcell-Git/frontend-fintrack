@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaUser, FaSignOutAlt, FaChartPie } from "react-icons/fa";
+import { supabase } from "@/lib/supabase";
 
 const Navbar = ({ user }) => {
   const router = useRouter();
@@ -11,6 +12,7 @@ const Navbar = ({ user }) => {
 
   const handleLogout = async () => {
     try {
+      await supabase.auth.signOut();
       await fetch("/api/auth/logout", { method: "POST" });
       router.push("/login");
       router.refresh();

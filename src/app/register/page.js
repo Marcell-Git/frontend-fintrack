@@ -2,12 +2,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 const Register = () => {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
     confirmPassword: "",
   });
@@ -29,8 +30,10 @@ const Register = () => {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.username.trim()) {
-      newErrors.username = "Username-nya jangan lupa diisi ya!";
+    if (!formData.email.trim()) {
+      newErrors.email = "Email-nya jangan lupa diisi ya!";
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      newErrors.email = "Format email-nya kurang tepat nih!";
     }
 
     if (!formData.password) {
@@ -56,20 +59,25 @@ const Register = () => {
     setErrors({});
 
     try {
-
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password,
-        }),
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
       });
 
-      const data = await res.json();
+      if (error) {
+        throw new Error(error.message);
+      }
 
-      if (!res.ok) {
-        throw new Error(data.message || "Gagal daftar nih, coba username lain?");
+      // If we have a session token, register the user row in the backend
+      const accessToken = data?.session?.access_token;
+      if (accessToken) {
+        await fetch("/api/auth/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }).catch(() => {});
       }
 
       // Success - redirect to login
@@ -85,7 +93,6 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] text-[#1a1a2e] relative overflow-hidden">
-      {/* Premium Background Elements */}
       <div className="hidden sm:block absolute top-[-15%] left-[-10%] w-[800px] h-[800px] bg-purple-400/25 rounded-full blur-[150px] animate-blob"></div>
       <div className="hidden sm:block absolute bottom-[-15%] right-[-10%] w-[700px] h-[700px] bg-pink-400/25 rounded-full blur-[150px] animate-blob animation-delay-2000"></div>
       <div className="hidden sm:block absolute top-[30%] right-[15%] w-[600px] h-[600px] bg-blue-400/25 rounded-full blur-[150px] animate-blob animation-delay-4000"></div>
@@ -115,18 +122,18 @@ const Register = () => {
 
             <div className="group relative">
               <label className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600">
-                Username
+                Email
               </label>
               <input
-                type="text"
-                name="username"
-                value={formData.username}
+                type="email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
-                className={`block w-full px-5 py-4 rounded-2xl border ${errors.username ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
-                placeholder="Username unikmu"
+                placeholder="kamu@email.com"
+                className={`block w-full px-5 py-4 rounded-2xl border ${errors.email ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
               />
-              {errors.username && (
-                <p className="mt-1 text-xs text-red-500 font-medium">{errors.username}</p>
+              {errors.email && (
+                <p className="mt-1 text-xs text-red-500 font-medium">{errors.email}</p>
               )}
             </div>
 
@@ -139,8 +146,8 @@ const Register = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`block w-full px-5 py-4 rounded-2xl border ${errors.password ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
                 placeholder="Minimal 6 karakter"
+                className={`block w-full px-5 py-4 rounded-2xl border ${errors.password ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
               />
               {errors.password && (
                 <p className="mt-1 text-xs text-red-500 font-medium">{errors.password}</p>
@@ -156,8 +163,8 @@ const Register = () => {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`block w-full px-5 py-4 rounded-2xl border ${errors.confirmPassword ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
                 placeholder="Konfirmasi password"
+                className={`block w-full px-5 py-4 rounded-2xl border ${errors.confirmPassword ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
               />
               {errors.confirmPassword && (
                 <p className="mt-1 text-xs text-red-500 font-medium">{errors.confirmPassword}</p>
@@ -192,10 +199,10 @@ const Register = () => {
             </p>
           </div>
         </div>
-      </div>
 
-      <div className="absolute bottom-4 text-center text-gray-400 text-xs w-full">
-        © {new Date().getFullYear()} FinTrack. All rights reserved.
+        <div className="absolute bottom-4 text-center text-gray-400 text-xs w-full">
+          © {new Date().getFullYear()} FinTrack. All rights reserved.
+        </div>
       </div>
     </div>
   );
