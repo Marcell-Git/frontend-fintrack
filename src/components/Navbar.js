@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FaUser, FaSignOutAlt, FaChartPie } from "react-icons/fa";
+import { FaUser, FaSignOutAlt, FaChartPie, FaKey } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
 
 const Navbar = ({ user }) => {
@@ -73,6 +73,14 @@ const Navbar = ({ user }) => {
                 onClick={() => setIsMenuOpen(false)}
               ></div>
               <div className="absolute right-0 top-full mt-2 w-48 glass-heavy rounded-2xl shadow-2xl shadow-black/10 border border-black/10 py-2 z-20 overflow-hidden">
+                <Link
+                  href="/profil"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                >
+                  <FaKey className="text-lg" />
+                  Ubah Password
+                </Link>
                 <button 
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-red-50 hover:text-red-500 transition-colors"
