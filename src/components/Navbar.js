@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FaUser, FaSignOutAlt, FaChartPie, FaKey } from "react-icons/fa";
+import { FaSignOutAlt, FaChartPie, FaKey } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
 
 const Navbar = ({ user }) => {
@@ -55,14 +55,11 @@ const Navbar = ({ user }) => {
           {/* User Profile Button */}
           <div 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="flex items-center gap-2 md:gap-3 glass rounded-full p-1.5 pr-3 md:pr-4 transition-all duration-200 cursor-pointer hover:glass-heavy"
+            className="flex items-center gap-2 glass rounded-full p-1.5 pr-2 transition-all duration-200 cursor-pointer hover:glass-heavy"
           >
-            <div className="glass-heavy p-2 rounded-full text-purple-500">
-              <FaUser size={14} />
+            <div className="glass-heavy p-2 rounded-full text-purple-600 text-sm font-bold flex items-center justify-center w-8 h-8">
+              {(user?.email?.[0] || "U").toUpperCase()}
             </div>
-            <p className="font-semibold text-sm text-[#1a1a2e]/80">
-              {user?.email || "Pengguna"}
-            </p>
           </div>
 
           {/* Dropdown Menu */}
@@ -72,7 +69,12 @@ const Navbar = ({ user }) => {
                 className="fixed inset-0 z-10" 
                 onClick={() => setIsMenuOpen(false)}
               ></div>
-              <div className="absolute right-0 top-full mt-2 w-48 glass-heavy rounded-2xl shadow-2xl shadow-black/10 border border-black/10 py-2 z-20 overflow-hidden">
+              <div className="absolute right-0 top-full mt-2 w-56 glass-heavy rounded-2xl shadow-2xl shadow-black/10 border border-black/10 py-2 z-20 overflow-hidden">
+                {user?.email && (
+                  <div className="px-4 py-3 border-b border-black/10">
+                    <p className="text-sm font-bold text-[#1a1a2e] truncate">{user.email}</p>
+                  </div>
+                )}
                 <Link
                   href="/profil"
                   onClick={() => setIsMenuOpen(false)}
@@ -91,16 +93,6 @@ const Navbar = ({ user }) => {
               </div>
             </>
           )}
-
-          <div className="h-6 w-px bg-black/10 hidden md:block"></div>
-
-          <button 
-            onClick={handleLogout}
-            className="hidden md:flex group items-center gap-2 text-gray-500 hover:text-red-500 transition-colors duration-200 p-2 rounded-lg hover:bg-red-50"
-          >
-            <FaSignOutAlt className="text-lg group-hover:-translate-x-1 transition-transform duration-200" />
-            <span className="font-semibold text-sm">Logout</span>
-          </button>
           
         </div>
       </div>
@@ -109,6 +101,7 @@ const Navbar = ({ user }) => {
 };
 
 
-export default Navbar;
+export default Navbar;
+
 
 
