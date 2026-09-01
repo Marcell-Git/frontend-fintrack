@@ -5,22 +5,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   FaPlus,
-  FaUtensils,
-  FaBus,
-  FaGamepad,
-  FaShoppingBag,
-  FaEllipsisH,
-  FaCoffee,
-  FaCalendarCheck,
-  FaBox,
   FaChartPie,
   FaTrash,
 } from "react-icons/fa";
 import { IoCloseOutline, IoChevronBack, IoChevronForward } from "react-icons/io5";
 
-export default function DashboardClient({ initialTransactions }) {
+const FALLBACK_COLOR = "#8E8E93";
+
+export default function DashboardClient({ initialTransactions, initialCategories }) {
   const router = useRouter();
   const [transactions, setTransactions] = useState(initialTransactions || []);
+  const [categories, setCategories] = useState(initialCategories || []);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -94,34 +89,22 @@ export default function DashboardClient({ initialTransactions }) {
     return acc;
   }, {});
 
-  const categoryIcons = {
-    hiburan: <FaGamepad size={18} className="text-[#AF52DE]" />,
-    belanja: <FaShoppingBag size={18} className="text-[#FF9500]" />,
-    transportasi: <FaBus size={18} className="text-[#5856D6]" />,
-    makanan: <FaUtensils size={18} className="text-[#FF3B30]" />,
-    ngopi: <FaCoffee size={18} className="text-[#A2845E]" />,
-    langganan: <FaCalendarCheck size={18} className="text-[#007AFF]" />,
-    kebutuhan: <FaBox size={18} className="text-[#34C759]" />,
-    lainnya: <FaEllipsisH size={18} className="text-[#8E8E93]" />,
-  };
+  const categoryMap = categories.reduce((acc, c) => {
+    acc[c.name] = c;
+    return acc;
+  }, {});
 
-  const categoryColors = {
-    hiburan: "bg-[#AF52DE]",
-    belanja: "bg-[#FF9500]",
-    transportasi: "bg-[#5856D6]",
-    makanan: "bg-[#FF3B30]",
-    ngopi: "bg-[#A2845E]",
-    langganan: "bg-[#007AFF]",
-    kebutuhan: "bg-[#34C759]",
-    lainnya: "bg-[#8E8E93]",
-  };
+  const categoryColors = categories.reduce((acc, c) => {
+    acc[c.name] = c.color;
+    return acc;
+  }, {});
 
   const categoryStats = Object.keys(categoryTotals)
     .map((cat) => ({
-      name: cat.charAt(0).toUpperCase() + cat.slice(1),
+      name: (categoryMap[cat]?.name || cat).charAt(0).toUpperCase() + (categoryMap[cat]?.name || cat).slice(1),
+      emoji: categoryMap[cat]?.emoji || "",
+      color: categoryColors[cat] || FALLBACK_COLOR,
       amount: categoryTotals[cat],
-      color: categoryColors[cat] || "bg-[#8E8E93]",
-      icon: categoryIcons[cat] || <FaEllipsisH className="text-[#8E8E93]" />,
       percentage: totalAmount > 0 ? (categoryTotals[cat] / totalAmount) * 100 : 0,
     }))
     .sort((a, b) => b.amount - a.amount);
@@ -283,7 +266,9 @@ export default function DashboardClient({ initialTransactions }) {
                   <div className="mt-8 flex gap-3 overflow-x-auto no-scrollbar py-2">
                     {categoryStats.map((cat, i) => (
                       <div key={i} className="flex-none bg-white/30 backdrop-blur-[36px] border border-black/[0.12] px-4 py-3 rounded-2xl flex items-center gap-3">
-                        <div className="glass p-1.5 rounded-lg">{cat.icon}</div>
+                        <div className="glass p-1.5 rounded-lg">
+                          <span className="text-lg leading-none">{cat.emoji || "➕"}</span>
+                        </div>
                         <div>
                           <p className="text-[10px] font-bold text-gray-500 uppercase leading-none mb-1">{cat.name}</p>
                           <p className="text-xs font-bold leading-none text-[#1a1a2e]">Rp{cat.amount.toLocaleString("id-ID")}</p>
@@ -298,8 +283,8 @@ export default function DashboardClient({ initialTransactions }) {
                   {categoryStats.map((cat, i) => (
                     <div 
                       key={i} 
-                      className={`h-1.5 first:rounded-l-full last:rounded-r-full ${cat.color}`} 
-                      style={{ width: `${cat.percentage}%` }}
+                      className="h-1.5 first:rounded-l-full last:rounded-r-full" 
+                      style={{ width: `${cat.percentage}%`, backgroundColor: cat.color }}
                     />
                   ))}
                 </div>
@@ -337,7 +322,7 @@ export default function DashboardClient({ initialTransactions }) {
                               <SwipeableItem 
                                 key={item.id} 
                                 item={item} 
-                                categoryIcons={categoryIcons} 
+                                categoryMap={categoryMap} 
                                 onDelete={handleDeleteTransaction} 
                               />
                             ))}
@@ -355,7 +340,7 @@ export default function DashboardClient({ initialTransactions }) {
           <div className="hidden lg:block lg:col-span-4">
             <div className="glass-heavy rounded-[2rem] shadow-xl shadow-black/5 p-8 sticky top-28">
               <h3 className="text-xl font-bold text-[#1a1a2e] mb-6">Tambah Transaksi</h3>
-              <FormContent formData={formData} handleChange={handleChange} handleSubmit={handleSubmit} isSubmitting={isSubmitting} formatRupiah={formatRupiah} />
+              <FormContent formData={formData} handleChange={handleChange} handleSubmit={handleSubmit} isSubmitting={isSubmitting} formatRupiah={formatRupiah} categories={categories} />
             </div>
           </div>
         </div>
@@ -436,6 +421,7 @@ export default function DashboardClient({ initialTransactions }) {
               handleSubmit={handleSubmit}
               isSubmitting={isSubmitting}
               formatRupiah={formatRupiah}
+              categories={categories}
             />
             {/* Bottom padding respects iPhone home indicator */}
             <div style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }} />
@@ -488,12 +474,16 @@ const SkeletonActivity = () => (
   </div>
 );
 
-const SwipeableItem = ({ item, categoryIcons, onDelete }) => {
+const SwipeableItem = ({ item, categoryMap, onDelete }) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [startX, setStartX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const swipeThreshold = 50; 
   const maxSwipe = 80;
+
+  const cat = categoryMap[item.kategori];
+  const emoji = cat?.emoji || "➕";
+  const iconStyle = cat ? { backgroundColor: `${cat.color}20` } : {};
 
   const handleTouchStart = (e) => {
     setStartX(e.touches[0].clientX);
@@ -577,8 +567,8 @@ const SwipeableItem = ({ item, categoryIcons, onDelete }) => {
         onMouseLeave={handleMouseEnd}
       >
         <div className="flex items-center gap-4 pointer-events-none">
-          <div className="w-12 h-12 rounded-xl glass flex items-center justify-center">
-            {categoryIcons[item.kategori] || <FaEllipsisH className="text-gray-400" />}
+          <div className="w-12 h-12 rounded-xl glass flex items-center justify-center text-xl" style={iconStyle}>
+            <span className="leading-none">{emoji}</span>
           </div>
           <div>
             <p className="font-semibold text-[#1a1a2e]">{item.deskripsi || item.kategori}</p>
@@ -597,21 +587,10 @@ const SwipeableItem = ({ item, categoryIcons, onDelete }) => {
   );
 };
 
-const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, formatRupiah }) => {
+const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, formatRupiah, categories }) => {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
 
-  const categories = [
-    { id: 'makanan', label: 'Makanan', icon: <FaUtensils className="text-[#FF3B30]" /> },
-    { id: 'ngopi', label: 'Ngopi', icon: <FaCoffee className="text-[#A2845E]" /> },
-    { id: 'kebutuhan', label: 'Kebutuhan', icon: <FaBox className="text-[#34C759]" /> },
-    { id: 'transportasi', label: 'Transportasi', icon: <FaBus className="text-[#5856D6]" /> },
-    { id: 'langganan', label: 'Langganan', icon: <FaCalendarCheck className="text-[#007AFF]" /> },
-    { id: 'belanja', label: 'Belanja', icon: <FaShoppingBag className="text-[#FF9500]" /> },
-    { id: 'hiburan', label: 'Hiburan', icon: <FaGamepad className="text-[#AF52DE]" /> },
-    { id: 'lainnya', label: 'Lainnya', icon: <FaEllipsisH className="text-[#8E8E93]" /> },
-  ];
-
-  const selectedCategory = categories.find(c => c.id === formData.kategori);
+  const selectedCategory = categories.find(c => c.name === formData.kategori);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 pb-2">
@@ -671,8 +650,10 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
           >
             {selectedCategory ? (
               <div className="flex items-center gap-3">
-                <div className="w-5 flex justify-center">{selectedCategory.icon}</div>
-                <span>{selectedCategory.label}</span>
+                <div className="w-5 flex justify-center">
+                  <span className="text-lg leading-none">{selectedCategory.emoji}</span>
+                </div>
+                <span className="capitalize">{selectedCategory.name}</span>
               </div>
             ) : (
               <span className="text-gray-400">Pilih Kategori</span>
@@ -681,31 +662,37 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, forma
           </button>
 
           {isCategoryOpen && (
-            <div className="absolute z-20 w-full bottom-full mb-2 glass-heavy rounded-2xl shadow-xl shadow-black/10 p-3 overflow-hidden">
+            <div className="absolute z-20 w-full bottom-full mb-2 glass-heavy rounded-2xl shadow-xl shadow-black/10 p-3 overflow-hidden max-h-72 overflow-y-auto">
+              {categories.length === 0 ? (
+                <p className="text-center text-xs text-gray-400 py-3 font-medium">
+                  Belum ada kategori. Yuk buat dulu!
+                </p>
+              ) : (
               <div className="grid grid-cols-4 gap-2">
                 {categories.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
                     onClick={() => {
-                      handleChange({ target: { name: 'kategori', value: cat.id } });
+                      handleChange({ target: { name: 'kategori', value: cat.name } });
                       setIsCategoryOpen(false);
                     }}
                     className={`flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl transition-all ${
-                      formData.kategori === cat.id 
+                      formData.kategori === cat.name 
                         ? 'bg-purple-50 ring-1 ring-purple-300' 
                         : 'hover:bg-black/5 active:bg-black/10'
                     }`}
                   >
-                    <div className="w-8 h-8 rounded-full glass flex items-center justify-center">
-                      <div className="scale-110">{cat.icon}</div>
+                    <div className="w-8 h-8 rounded-full glass flex items-center justify-center" style={{ backgroundColor: `${cat.color}20` }}>
+                      <span className="text-base leading-none">{cat.emoji}</span>
                     </div>
-                    <span className="text-[9px] font-bold text-[#1a1a2e] text-center leading-tight">
-                      {cat.label}
+                    <span className="text-[9px] font-bold text-[#1a1a2e] text-center leading-tight capitalize">
+                      {cat.name}
                     </span>
                   </button>
                 ))}
               </div>
+              )}
             </div>
           )}
         </div>

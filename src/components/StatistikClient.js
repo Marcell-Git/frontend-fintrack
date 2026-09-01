@@ -5,26 +5,16 @@ import { pack, hierarchy } from "d3-hierarchy";
 import { FaArrowLeft, FaChartPie } from "react-icons/fa";
 import Link from "next/link";
 
-const CATEGORIES = [
-  { id: "makanan", label: "Makanan", color: "#FF3B30" },
-  { id: "ngopi", label: "Ngopi", color: "#A2845E" },
-  { id: "kebutuhan", label: "Kebutuhan", color: "#34C759" },
-  { id: "transportasi", label: "Transportasi", color: "#5856D6" },
-  { id: "langganan", label: "Langganan", color: "#007AFF" },
-  { id: "belanja", label: "Belanja", color: "#FF9500" },
-  { id: "hiburan", label: "Hiburan", color: "#AF52DE" },
-  { id: "lainnya", label: "Lainnya", color: "#8E8E93" },
-];
-
 const CHART_W = 500;
 const CHART_H = 550;
 
 const formatRupiah = (v) => new Intl.NumberFormat("id-ID").format(v || 0);
 
-export default function StatistikClient({ transactions, year }) {
+export default function StatistikClient({ transactions, categories, year }) {
   const [filterCat, setFilterCat] = useState(null);
   const [hovered, setHovered] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [chartWidth, setChartWidth] = useState(300);
   const chartRef = useRef(null);
 
   const { totalYear, topCategory, bubbles } = useMemo(() => {
@@ -41,15 +31,17 @@ export default function StatistikClient({ transactions, year }) {
     Object.entries(catTotals).forEach(([cat, amt]) => {
       if (amt > topAmt) { topAmt = amt; topId = cat; }
     });
-    const topCat = CATEGORIES.find((c) => c.id === topId);
+    const topCat = categories.find((c) => c.name === topId);
 
     const rawData = {
       id: "root",
-      children: CATEGORIES.map((cat) => ({
-        id: cat.id,
-        label: cat.label,
-        value: catTotals[cat.id] || 0,
+      children: categories.map((cat) => ({
+        id: cat.name,
+        label:
+          cat.name.charAt(0).toUpperCase() + cat.name.slice(1),
+        value: catTotals[cat.name] || 0,
         color: cat.color,
+        emoji: cat.emoji,
       })).filter((d) => d.value > 0),
     };
 
@@ -70,16 +62,18 @@ export default function StatistikClient({ transactions, year }) {
       r: d.r,
       id: d.data.id,
       label: d.data.label,
+      emoji: d.data.emoji,
       value: d.data.value,
       color: d.data.color,
     }));
 
     return { totalYear: total, topCategory: topCat, bubbles: leaves };
-  }, [transactions]);
+  }, [transactions, categories]);
 
   const handleBubbleHover = (e, b) => {
     if (chartRef.current) {
       const rect = chartRef.current.getBoundingClientRect();
+      setChartWidth(rect.width || 300);
       setTooltipPos({
         x: e.clientX - rect.left,
         y: e.clientY - rect.top,
@@ -126,7 +120,9 @@ export default function StatistikClient({ transactions, year }) {
           <div className="glass-heavy rounded-2xl p-4 sm:p-6">
             <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Kategori Terbanyak</p>
             <p className="text-xl sm:text-2xl font-bold mt-2 text-purple-600">
-              {topCategory ? topCategory.label : "-"}
+              {topCategory
+                ? topCategory.name.charAt(0).toUpperCase() + topCategory.name.slice(1)
+                : "-"}
             </p>
           </div>
         </div>
@@ -167,17 +163,30 @@ export default function StatistikClient({ transactions, year }) {
                         onClick={() => setFilterCat(filterCat === b.id ? null : b.id)}
                       />
                       {b.r > 22 && (
-                        <text
-                          x={b.x}
-                          y={b.y - (b.r > 40 ? 4 : 0)}
-                          textAnchor="middle"
-                          fill="white"
-                          fontSize={b.r > 50 ? 13 : b.r > 30 ? 11 : 9}
-                          fontWeight={700}
-                          className="pointer-events-none select-none"
-                        >
-                          {b.label}
-                        </text>
+                        <>
+                          {b.emoji && (
+                            <text
+                              x={b.x}
+                              y={b.y - (b.r > 40 ? 8 : 4)}
+                              textAnchor="middle"
+                              fontSize={b.r > 50 ? 16 : b.r > 30 ? 13 : 11}
+                              className="pointer-events-none select-none"
+                            >
+                              {b.emoji}
+                            </text>
+                          )}
+                          <text
+                            x={b.x}
+                            y={b.y + (b.r > 40 ? 4 : 8)}
+                            textAnchor="middle"
+                            fill="white"
+                            fontSize={b.r > 50 ? 13 : b.r > 30 ? 11 : 9}
+                            fontWeight={700}
+                            className="pointer-events-none select-none"
+                          >
+                            {b.label}
+                          </text>
+                        </>
                       )}
                       {b.r > 35 && (
                         <text
@@ -196,11 +205,11 @@ export default function StatistikClient({ transactions, year }) {
                   ))}
                 </svg>
 
-                {hovered && chartRef.current && (
+                {hovered && (
                   <div
                     className="absolute glass-heavy rounded-xl px-3 py-2.5 shadow-xl border border-black/10 pointer-events-none z-20"
                     style={{
-                      left: Math.min(tooltipPos.x + 16, (chartRef.current?.offsetWidth || 300) - 150),
+                      left: Math.min(tooltipPos.x + 16, chartWidth - 150),
                       top: Math.max(tooltipPos.y - 70, 0) + 10,
                     }}
                   >
@@ -221,16 +230,16 @@ export default function StatistikClient({ transactions, year }) {
                 >
                   Semua
                 </button>
-                {CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <button
                     key={cat.id}
-                    onClick={() => setFilterCat(filterCat === cat.id ? null : cat.id)}
+                    onClick={() => setFilterCat(filterCat === cat.name ? null : cat.name)}
                     className={`flex-none flex items-center gap-1.5 glass rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-xs transition-all whitespace-nowrap ${
-                      filterCat === cat.id ? "ring-1 ring-gray-300 bg-black/5" : "hover:bg-black/5"
+                      filterCat === cat.name ? "ring-1 ring-gray-300 bg-black/5" : "hover:bg-black/5"
                     }`}
                   >
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
-                    <span className="text-gray-600">{cat.label}</span>
+                    <span className="text-gray-600 capitalize">{cat.name}</span>
                   </button>
                 ))}
               </div>

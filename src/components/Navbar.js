@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { FaSignOutAlt, FaChartPie, FaKey } from "react-icons/fa";
+import { FaSignOutAlt, FaChartPie, FaKey, FaTags } from "react-icons/fa";
 import { supabase } from "@/lib/supabase";
 
 const Navbar = ({ user }) => {
@@ -82,6 +82,14 @@ const Navbar = ({ user }) => {
                 >
                   <FaKey className="text-lg" />
                   Ubah Password
+                </Link>
+                <Link
+                  href="/kategori"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                >
+                  <FaTags className="text-lg" />
+                  Kelola Kategori
                 </Link>
                 <button 
                   onClick={handleLogout}

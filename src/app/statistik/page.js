@@ -21,10 +21,16 @@ export default async function StatistikPage() {
     redirect("/login");
   }
 
+  const categories = await fetchWithAuth("/api/categories");
+
   return (
     <div className="min-h-screen">
       <Navbar user={user} />
-      <StatistikClient transactions={allTransactions} year={year} />
+      <StatistikClient
+        transactions={allTransactions}
+        categories={categories || []}
+        year={year}
+      />
     </div>
   );
 }

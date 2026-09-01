@@ -9,9 +9,10 @@ export default async function Home() {
   const month = now.getMonth() + 1;
 
   // Fetch transactions securely (Server-to-Server)
-  const [transactions, user] = await Promise.all([
+  const [transactions, user, categories] = await Promise.all([
     fetchWithAuth(`/api/pengeluaran/user/0/year/${year}/month/${month}`),
     fetchWithAuth("/api/auth/me"),
+    fetchWithAuth("/api/categories"),
   ]);
 
   // If fetch returns null (unauthorized), redirect to login
@@ -22,7 +23,10 @@ export default async function Home() {
   return (
     <div className="min-h-screen">
       <Navbar user={user} />
-      <DashboardClient initialTransactions={transactions} />
+      <DashboardClient
+        initialTransactions={transactions}
+        initialCategories={categories || []}
+      />
     </div>
   );
 }
