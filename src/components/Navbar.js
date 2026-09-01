@@ -61,7 +61,7 @@ const Navbar = ({ user }) => {
               <FaUser size={14} />
             </div>
             <p className="font-semibold text-sm text-[#1a1a2e]/80">
-              {user?.username || "Pengguna"}
+              {user?.email || "Pengguna"}
             </p>
           </div>
 

@@ -214,7 +214,7 @@ const ProfilClient = ({ user }) => {
           Pengaturan Akun
         </h1>
         <p className="text-gray-500 text-sm font-medium mt-1">
-          Kelola akun <span className="font-bold text-purple-600">{user?.username}</span> kamu 🔐
+          Kelola akun <span className="font-bold text-purple-600">{user?.email}</span> kamu 🔐
         </p>
 
         <div className="mt-6 inline-flex glass-heavy rounded-2xl p-1 gap-1">
