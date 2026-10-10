@@ -173,7 +173,7 @@ export default function Login() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-dvh items-center justify-center bg-primary">
+        <div className="flex min-h-dvh items-center justify-center bg-header">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
         </div>
       }

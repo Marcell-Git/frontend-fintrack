@@ -1,7 +1,7 @@
 // Text field sesuai komponen "Text field / Default" di Figma:
 // tinggi 44px, radius 15px, border #CBCBCB, teks 14px medium.
 export const inputClass = (hasError) =>
-  `block h-11 w-full rounded-field border bg-white px-3 text-sm font-medium text-ink placeholder:text-placeholder outline-none transition-colors focus:border-primary ${
+  `block h-11 w-full rounded-field border bg-surface px-3 text-sm font-medium text-ink placeholder:text-placeholder outline-none transition-colors focus:border-primary ${
     hasError ? "border-danger" : "border-field"
   }`;
 

@@ -1,7 +1,7 @@
 import { IoCheckmarkCircle, IoAlertCircle } from "react-icons/io5";
 
 const TONES = {
-  success: { className: "bg-success/15 text-[#178a72]", Icon: IoCheckmarkCircle },
+  success: { className: "bg-success/15 text-success-ink", Icon: IoCheckmarkCircle },
   error: { className: "bg-danger/10 text-danger", Icon: IoAlertCircle },
 };
 

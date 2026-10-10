@@ -109,7 +109,7 @@ export default function StatistikClient({ transactions, categories, year }) {
   return (
     <AppShell title={`Statistik ${year}`}>
       {/* Kartu grafik bulanan — "Chart" di Figma Transaction report */}
-      <section className="rounded-sheet bg-white p-4 shadow-soft">
+      <section className="rounded-sheet bg-card p-4 shadow-soft">
         <p className="text-xs leading-4 font-semibold text-ink">
           Pengeluaran {new Date(year, selectedMonth).toLocaleDateString("id-ID", { month: "long" })}
         </p>
@@ -170,17 +170,17 @@ export default function StatistikClient({ transactions, categories, year }) {
 
       {/* Ringkasan tahunan */}
       <section className="mt-6 grid grid-cols-2 gap-4">
-        <div className="rounded-field bg-white p-4 shadow-card">
+        <div className="rounded-field bg-card p-4 shadow-card">
           <p className="text-xs leading-4 font-semibold text-subtle">Total tahun ini</p>
           <p className="mt-2 truncate text-base leading-6 font-semibold text-ink">Rp{formatRupiah(totalYear)}</p>
         </div>
-        <div className="rounded-field bg-white p-4 shadow-card">
+        <div className="rounded-field bg-card p-4 shadow-card">
           <p className="text-xs leading-4 font-semibold text-subtle">Rata-rata / bulan</p>
           <p className="mt-2 truncate text-base leading-6 font-semibold text-ink">
             Rp{formatRupiah(Math.round(totalYear / 12))}
           </p>
         </div>
-        <div className="col-span-2 flex items-center gap-4 rounded-field bg-white p-4 shadow-card">
+        <div className="col-span-2 flex items-center gap-4 rounded-field bg-card p-4 shadow-card">
           <span
             className="flex h-10 w-10 flex-none items-center justify-center rounded-[10px] text-lg leading-none"
             style={{ backgroundColor: topCategory ? `${topCategory.color}26` : undefined }}
@@ -222,7 +222,7 @@ export default function StatistikClient({ transactions, categories, year }) {
               ))}
             </div>
 
-            <div className="rounded-sheet bg-white p-3 shadow-soft">
+            <div className="rounded-sheet bg-card p-3 shadow-soft">
               <div className="relative w-full" ref={chartRef}>
                 <svg
                   viewBox={`0 0 ${CHART_W} ${CHART_H}`}
@@ -291,7 +291,7 @@ export default function StatistikClient({ transactions, categories, year }) {
 
                 {hovered && (
                   <div
-                    className="pointer-events-none absolute z-20 rounded-field bg-white px-3 py-2.5 shadow-soft ring-1 ring-line"
+                    className="pointer-events-none absolute z-20 rounded-field bg-card px-3 py-2.5 shadow-soft ring-1 ring-line"
                     style={{
                       left: Math.min(tooltipPos.x + 16, chartWidth - 150),
                       top: Math.max(tooltipPos.y - 70, 0) + 10,

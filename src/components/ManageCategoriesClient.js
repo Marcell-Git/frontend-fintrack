@@ -205,7 +205,7 @@ const ManageCategoriesClient = ({ initialCategories }) => {
 
           <div className="flex items-center gap-4 rounded-field bg-primary-4 p-3">
             <span
-              className="flex h-12 w-12 flex-none items-center justify-center rounded-[10px] bg-white text-2xl leading-none"
+              className="flex h-12 w-12 flex-none items-center justify-center rounded-[10px] bg-surface text-2xl leading-none"
               style={{ backgroundColor: `${formData.color}26` }}
             >
               {formData.emoji || "🏷️"}

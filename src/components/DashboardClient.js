@@ -230,7 +230,7 @@ export default function DashboardClient({ user, initialTransactions, initialCate
             {visibleCategoryStats.map((cat) => (
               <div
                 key={cat.name}
-                className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-field bg-white px-2 text-center shadow-card"
+                className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-field bg-card px-2 text-center shadow-card"
               >
                 <span
                   className="flex h-9 w-9 items-center justify-center rounded-[10px] text-lg leading-none"
@@ -247,7 +247,7 @@ export default function DashboardClient({ user, initialTransactions, initialCate
             {hasMoreCategories && (
               <Link
                 href="/statistik"
-                className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-field bg-white text-center shadow-card"
+                className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-field bg-card text-center shadow-card"
               >
                 <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-primary-4 text-primary">
                   <IoArrowForward size={18} />
@@ -387,7 +387,7 @@ const SwipeableItem = ({ item, categoryMap, onDelete }) => {
       </div>
 
       <div
-        className="flex cursor-grab items-center gap-4 bg-white py-3 select-none active:cursor-grabbing"
+        className="flex cursor-grab items-center gap-4 bg-surface py-3 select-none active:cursor-grabbing"
         style={{ transform: `translateX(${swipeOffset}px)`, transition }}
         onTouchStart={(e) => startSwipe(e.touches[0].clientX)}
         onTouchMove={(e) => moveSwipe(e.touches[0].clientX)}
@@ -450,7 +450,7 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, categ
         value={formData.tanggal}
         onChange={handleChange}
         type="date"
-        className="scheme-light"
+        className="scheme-light dark:scheme-dark"
       />
 
       <div>
@@ -473,7 +473,7 @@ const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, categ
                   onClick={() => handleChange({ target: { name: "kategori", value: cat.name } })}
                   aria-pressed={isSelected}
                   className={`flex flex-col items-center gap-1.5 rounded-field px-1 py-2.5 transition-all ${
-                    isSelected ? "bg-primary-4 ring-2 ring-primary" : "bg-white ring-1 ring-line active:bg-primary-4"
+                    isSelected ? "bg-primary-4 ring-2 ring-primary" : "bg-surface ring-1 ring-line active:bg-primary-4"
                   }`}
                 >
                   <span

@@ -1,5 +1,6 @@
 import { Poppins } from "next/font/google";
 import "./globals.css";
+import { themeInitScript, THEME_COLORS } from "@/lib/theme";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -23,7 +24,7 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: "#3629b7",
+  themeColor: THEME_COLORS.light,
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -31,8 +32,9 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id">
+    <html lang="id" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

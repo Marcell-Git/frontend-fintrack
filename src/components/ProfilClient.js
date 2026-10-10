@@ -327,7 +327,7 @@ const ProfilClient = ({ user }) => {
     <AppShell title="Akun" headerClassName="pb-16">
       {/* Avatar menumpang di tepi sheet seperti layar "Setting" */}
       <div className="-mt-[76px] flex flex-col items-center">
-        <div className="flex h-[100px] w-[100px] items-center justify-center rounded-full border-4 border-white bg-primary-4 text-4xl font-semibold text-primary shadow-soft">
+        <div className="flex h-[100px] w-[100px] items-center justify-center rounded-full border-4 border-surface bg-primary-4 text-4xl font-semibold text-primary shadow-soft">
           {(email?.[0] || "U").toUpperCase()}
         </div>
         <p className="mt-3 text-base leading-6 font-semibold text-primary">{displayName(email)}</p>

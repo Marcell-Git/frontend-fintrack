@@ -25,7 +25,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md bg-white shadow-tab"
+      className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-md bg-surface shadow-tab"
       style={{ paddingBottom: "var(--sab)" }}
     >
       <ul className="flex h-[72px] items-center justify-around px-4">

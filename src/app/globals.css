@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
+/* Mode gelap dipicu class .dark di <html> (diatur ThemeToggle) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Design tokens — referensi Figma "iBank / FinPay" */
 @theme {
   --font-sans: var(--font-poppins);
+
+  --color-surface: #ffffff;
+  --color-card: #ffffff;
+  --color-header: #3629b7;
+  --color-success-ink: #178a72;
 
   --color-primary: #3629b7;
   --color-primary-2: #5655b9;
@@ -22,12 +30,50 @@
   --color-success: #52d5ba;
   --color-orange: #fb6b18;
 
-  --shadow-card: 0 5px 30px 0 rgba(0, 0, 0, 0.05);
-  --shadow-soft: 0 4px 30px 0 rgba(54, 41, 183, 0.07);
-  --shadow-tab: 0 -5px 30px 0 rgba(54, 41, 183, 0.07);
+  --shadow-card: 0 5px 30px 0 var(--shadow-card-color);
+  --shadow-soft: 0 4px 30px 0 var(--shadow-soft-color);
+  --shadow-tab: 0 -5px 30px 0 var(--shadow-soft-color);
 
   --radius-field: 15px;
   --radius-sheet: 30px;
+}
+
+/* Variabel runtime (mode terang) + safe area iOS PWA.
+   Harus berada sebelum blok .dark supaya override mode gelap menang. */
+:root {
+  --shadow-card-color: rgba(0, 0, 0, 0.05);
+  --shadow-soft-color: rgba(54, 41, 183, 0.07);
+
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* Override token untuk mode gelap — utilitas Tailwind membaca variabel ini,
+   jadi komponen otomatis ikut berganti warna. */
+.dark {
+  color-scheme: dark;
+
+  --color-surface: #16152a;
+  --color-card: #201e38;
+  --color-header: #1e1671;
+  --color-success-ink: #52d5ba;
+
+  --color-primary: #7468f0;
+  --color-primary-2: #8b88e0;
+  --color-primary-3: #4b4690;
+  --color-primary-4: #23213a;
+
+  --color-ink: #ececf3;
+  --color-muted: #9a9aab;
+  --color-subtle: #8e8ea3;
+  --color-placeholder: #5c5b72;
+  --color-line: #2c2b42;
+  --color-field: #3a3954;
+
+  --shadow-card-color: rgba(0, 0, 0, 0.35);
+  --shadow-soft-color: rgba(0, 0, 0, 0.4);
 }
 
 @utility no-scrollbar {
@@ -56,13 +102,6 @@
   border-radius: 3px;
 }
 
-/* iOS PWA: support safe area insets */
-:root {
-  --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
-  --sal: env(safe-area-inset-left, 0px);
-  --sar: env(safe-area-inset-right, 0px);
-}
 
 /* Ensure tap highlight is removed on iOS for interactive elements */
 button, a {
