@@ -1,6 +1,7 @@
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { themeInitScript, THEME_COLORS } from "@/lib/theme";
+import AuthSync from "@/components/AuthSync";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -43,6 +44,7 @@ export default function RootLayout({ children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
       <body className={`${poppins.variable} font-sans antialiased bg-primary-4 text-ink`}>
+        <AuthSync />
         {children}
       </body>
     </html>

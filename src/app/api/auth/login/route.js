@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { SESSION_COOKIE, ACTIVE_COOKIE, sessionCookieOptions } from "@/lib/session";
 
-const COOKIE_NAME = process.env.COOKIE_NAME || "fintrack_session";
-
+// Login sungguhan: simpan token dan mulai hitungan aktivitas 7 hari
 export async function POST(request) {
   try {
     const { accessToken } = await request.json();
@@ -15,15 +15,8 @@ export async function POST(request) {
     }
 
     const cookieStore = await cookies();
-    cookieStore.set({
-      name: COOKIE_NAME,
-      value: accessToken,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/",
-      maxAge: 3600,
-    });
+    cookieStore.set(SESSION_COOKIE, accessToken, sessionCookieOptions);
+    cookieStore.set(ACTIVE_COOKIE, "1", sessionCookieOptions);
 
     return NextResponse.json({ message: "Session created" });
   } catch (error) {

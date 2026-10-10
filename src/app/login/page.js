@@ -13,15 +13,16 @@ import PasswordField from "@/components/ui/PasswordField";
 const LoginForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [successMessage, setSuccessMessage] = useState("");
+  const isRegistered = Boolean(searchParams.get("registered"));
+  const isExpired = Boolean(searchParams.get("expired"));
+  const successMessage = isRegistered
+    ? "Pendaftaran berhasil! Silakan masuk dengan akun barumu."
+    : "";
 
+  // Sesi berakhir karena tidak aktif 7 hari → bersihkan sisa sesi Supabase di browser
   useEffect(() => {
-    if (searchParams.get("registered")) {
-      setSuccessMessage(
-        "Pendaftaran berhasil! Silakan masuk dengan akun barumu.",
-      );
-    }
-  }, [searchParams]);
+    if (isExpired) supabase.auth.signOut({ scope: "local" }).catch(() => {});
+  }, [isExpired]);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -125,6 +126,9 @@ const LoginForm = () => {
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
         <Alert tone="success">{successMessage}</Alert>
+        {isExpired && (
+          <Alert tone="error">Sesi kamu berakhir karena tidak ada aktivitas selama 7 hari. Silakan masuk lagi ya.</Alert>
+        )}
         <Alert tone="error">{errors.general}</Alert>
 
         <Field
