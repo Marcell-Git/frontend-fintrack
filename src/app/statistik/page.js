@@ -1,5 +1,4 @@
-﻿import { redirect } from "next/navigation";
-import Navbar from "@/components/Navbar";
+import { redirect } from "next/navigation";
 import StatistikClient from "@/components/StatistikClient";
 import { fetchWithAuth } from "@/lib/api";
 
@@ -24,13 +23,10 @@ export default async function StatistikPage() {
   const categories = await fetchWithAuth("/api/categories");
 
   return (
-    <div className="min-h-screen">
-      <Navbar user={user} />
-      <StatistikClient
-        transactions={allTransactions}
-        categories={categories || []}
-        year={year}
-      />
-    </div>
+    <StatistikClient
+      transactions={allTransactions}
+      categories={categories || []}
+      year={year}
+    />
   );
 }

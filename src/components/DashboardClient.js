@@ -1,57 +1,36 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  FaPlus,
-  FaChartPie,
-  FaTrash,
-} from "react-icons/fa";
-import { IoCloseOutline, IoChevronBack, IoChevronForward } from "react-icons/io5";
+import { FaTrash } from "react-icons/fa";
+import { IoAdd, IoChevronBack, IoChevronForward, IoArrowForward } from "react-icons/io5";
+import AppShell from "@/components/ui/AppShell";
+import BottomSheet from "@/components/ui/BottomSheet";
+import Button from "@/components/ui/Button";
+import Field, { Label } from "@/components/ui/Field";
+import SpendingCard from "@/components/SpendingCard";
+import { formatRupiah, capitalize, displayName } from "@/lib/format";
 
 const FALLBACK_COLOR = "#8E8E93";
+const MAX_CATEGORY_TILES = 6;
 
-export default function DashboardClient({ initialTransactions, initialCategories }) {
+const emptyForm = () => ({
+  deskripsi: "",
+  tanggal: new Date().toISOString().split("T")[0],
+  jumlah: "",
+  kategori: "",
+});
+
+export default function DashboardClient({ user, initialTransactions, initialCategories }) {
   const router = useRouter();
   const [transactions, setTransactions] = useState(initialTransactions || []);
-  const [categories, setCategories] = useState(initialCategories || []);
+  const [categories] = useState(initialCategories || []);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    deskripsi: "",
-    tanggal: new Date().toISOString().split("T")[0],
-    jumlah: "",
-    kategori: "",
-  });
+  const [formData, setFormData] = useState(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) setIsFormOpen(false);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Prevent body scroll when bottom sheet is open (iOS fix)
-  useEffect(() => {
-    if (isFormOpen) {
-      document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.width = "100%";
-    } else {
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.width = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.width = "";
-    };
-  }, [isFormOpen]);
 
   const fetchTransactions = async (date) => {
     setIsFetching(true);
@@ -70,14 +49,8 @@ export default function DashboardClient({ initialTransactions, initialCategories
     }
   };
 
-  const handlePrevMonth = () => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-    setCurrentDate(newDate);
-    fetchTransactions(newDate);
-  };
-
-  const handleNextMonth = () => {
-    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+  const changeMonth = (offset) => {
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
     setCurrentDate(newDate);
     fetchTransactions(newDate);
   };
@@ -94,31 +67,24 @@ export default function DashboardClient({ initialTransactions, initialCategories
     return acc;
   }, {});
 
-  const categoryColors = categories.reduce((acc, c) => {
-    acc[c.name] = c.color;
-    return acc;
-  }, {});
-
   const categoryStats = Object.keys(categoryTotals)
     .map((cat) => ({
-      name: (categoryMap[cat]?.name || cat).charAt(0).toUpperCase() + (categoryMap[cat]?.name || cat).slice(1),
-      emoji: categoryMap[cat]?.emoji || "",
-      color: categoryColors[cat] || FALLBACK_COLOR,
+      name: capitalize(categoryMap[cat]?.name || cat),
+      emoji: categoryMap[cat]?.emoji || "➕",
+      color: categoryMap[cat]?.color || FALLBACK_COLOR,
       amount: categoryTotals[cat],
-      percentage: totalAmount > 0 ? (categoryTotals[cat] / totalAmount) * 100 : 0,
     }))
     .sort((a, b) => b.amount - a.amount);
 
-  const formatRupiah = (value) => {
-    if (!value) return "";
-    return new Intl.NumberFormat("id-ID").format(value);
-  };
+  const hasMoreCategories = categoryStats.length > MAX_CATEGORY_TILES;
+  const visibleCategoryStats = hasMoreCategories
+    ? categoryStats.slice(0, MAX_CATEGORY_TILES - 1)
+    : categoryStats;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "jumlah") {
-      const numericValue = value.replace(/\D/g, "");
-      setFormData({ ...formData, [name]: numericValue });
+      setFormData({ ...formData, [name]: value.replace(/\D/g, "") });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -145,12 +111,7 @@ export default function DashboardClient({ initialTransactions, initialCategories
         ) {
           setTransactions([newTx, ...transactions]);
         }
-        setFormData({
-          deskripsi: "",
-          tanggal: new Date().toISOString().split("T")[0],
-          jumlah: "",
-          kategori: "",
-        });
+        setFormData(emptyForm());
         setIsFormOpen(false);
         router.refresh();
       }
@@ -163,13 +124,13 @@ export default function DashboardClient({ initialTransactions, initialCategories
 
   const handleDeleteTransaction = async (id) => {
     if (!confirm("Yakin ingin menghapus pengeluaran ini?")) return;
-    
+
     try {
       const res = await fetch(`/api/pengeluaran/${id}`, {
         method: "DELETE",
       });
       if (res.ok) {
-        setTransactions(transactions.filter(t => t.id !== id));
+        setTransactions(transactions.filter((t) => t.id !== id));
         router.refresh();
       } else {
         alert("Gagal menghapus data");
@@ -182,7 +143,7 @@ export default function DashboardClient({ initialTransactions, initialCategories
 
   // Grouping transactions by date
   const groupedTransactions = transactions.reduce((acc, transaction) => {
-    const dateKey = transaction.tanggal.split('T')[0];
+    const dateKey = transaction.tanggal.split("T")[0];
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
@@ -202,273 +163,177 @@ export default function DashboardClient({ initialTransactions, initialCategories
     const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
     const yesterdayDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate()).getTime();
 
-    if (dDate === todayDate) return "Hari Ini";
+    if (dDate === todayDate) return "Hari ini";
     if (dDate === yesterdayDate) return "Kemarin";
-    
-    return d.toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' });
+
+    return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
   };
 
+  const monthLabel = currentDate.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+
+  const header = (
+    <div className="flex h-[53px] items-center gap-4">
+      <div className="flex h-[50px] w-[50px] flex-none items-center justify-center rounded-full bg-white/15 text-xl font-semibold ring-2 ring-white/30">
+        {(user?.email?.[0] || "U").toUpperCase()}
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs leading-4 text-white/70">Selamat datang,</p>
+        <p className="truncate text-base leading-6 font-medium">Hai, {displayName(user?.email)}</p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen text-[#1a1a2e] font-sans pb-24 lg:pb-10 relative">
-      {/* Floating background orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-15%] left-[-10%] w-[800px] h-[800px] bg-purple-400/25 rounded-full blur-[150px] animate-blob"></div>
-        <div className="absolute top-[15%] right-[-15%] w-[700px] h-[700px] bg-pink-400/25 rounded-full blur-[150px] animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[-15%] left-[15%] w-[750px] h-[750px] bg-blue-400/25 rounded-full blur-[150px] animate-blob animation-delay-4000"></div>
-      </div>
-
-      <div className="container mx-auto px-4 py-6 max-w-6xl relative z-10">
-        
-        {/* Centered Month/Year Navigation Header */}
-        <header className="flex justify-center items-center mb-10">
-          <div className="flex items-center glass-heavy shadow-lg shadow-black/20 px-2 py-1.5 rounded-full">
-              <button 
-                onClick={handlePrevMonth}
-                className="p-3 hover:bg-black/5 rounded-full transition-all active:scale-90"
-                disabled={isFetching}
-              >
-                <IoChevronBack size={18} className="text-purple-500" />
-              </button>
-            
-            <div className="px-6 text-center min-w-[180px]">
-              <h2 className="text-base font-bold tracking-tight text-[#1a1a2e]">
-                {currentDate.toLocaleDateString("id-ID", { month: "long", year: "numeric" })}
-              </h2>
-            </div>
-
-            <button 
-                onClick={handleNextMonth}
-                className="p-3 hover:bg-black/5 rounded-full transition-all active:scale-90"
-                disabled={isFetching}
-              >
-                <IoChevronForward size={18} className="text-purple-500" />
-              </button>
-          </div>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          <div className="lg:col-span-8 space-y-8">
-            
-            {isFetching ? (
-              <SkeletonSummary />
-            ) : (
-              <div className="glass-heavy rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden">
-                <div className="p-8">
-                  <p className="text-[10px] font-bold text-purple-600 uppercase tracking-widest mb-2">Total Pengeluaran</p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-semibold text-purple-500">Rp</span>
-                    <h2 className="text-5xl font-bold tracking-tight text-[#1a1a2e]">
-                      {totalAmount.toLocaleString("id-ID")}
-                    </h2>
-                  </div>
-
-                  <div className="mt-8 flex gap-3 overflow-x-auto no-scrollbar py-2">
-                    {categoryStats.map((cat, i) => (
-                      <div key={i} className="flex-none bg-white/30 backdrop-blur-[36px] border border-black/[0.12] px-4 py-3 rounded-2xl flex items-center gap-3">
-                        <div className="glass p-1.5 rounded-lg">
-                          <span className="text-lg leading-none">{cat.emoji || "➕"}</span>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-gray-500 uppercase leading-none mb-1">{cat.name}</p>
-                          <p className="text-xs font-bold leading-none text-[#1a1a2e]">Rp{cat.amount.toLocaleString("id-ID")}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Progress Bar Group */}
-                <div className="bg-black/5 px-8 py-4 flex gap-1">
-                  {categoryStats.map((cat, i) => (
-                    <div 
-                      key={i} 
-                      className="h-1.5 first:rounded-l-full last:rounded-r-full" 
-                      style={{ width: `${cat.percentage}%`, backgroundColor: cat.color }}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Glass Style Grouped List (History) */}
-            <div>
-              <div className="flex justify-between items-center mb-4 px-2">
-                <h3 className="text-xl font-bold text-[#1a1a2e]">Aktivitas Terakhir</h3>
-              </div>
-              
-              {isFetching ? (
-                <SkeletonActivity />
-              ) : (
-                <div className="glass-heavy rounded-[2rem] shadow-xl shadow-black/20 overflow-hidden">
-                  {transactions.length === 0 ? (
-                      <div className="py-20 text-center text-gray-400">
-                        <p className="font-medium italic">Belum ada transaksi nih. Yuk mulai catat!</p>
-                      </div>
-                  ) : (
-                    <div className="">
-                      {sortedDates.map((dateKey) => (
-                        <div key={dateKey}>
-                          <div className="bg-black/[0.02] px-5 py-2 border-y border-black/5 first:border-t-0 flex justify-between items-center">
-                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                              {formatDateLabel(dateKey)}
-                            </p>
-                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                              Total: Rp{groupedTransactions[dateKey].reduce((sum, item) => sum + Number(item.jumlah), 0).toLocaleString("id-ID")}
-                            </p>
-                          </div>
-                          <div className="divide-y divide-black/5">
-                            {groupedTransactions[dateKey].map((item) => (
-                              <SwipeableItem 
-                                key={item.id} 
-                                item={item} 
-                                categoryMap={categoryMap} 
-                                onDelete={handleDeleteTransaction} 
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Desktop Form */}
-          <div className="hidden lg:block lg:col-span-4">
-            <div className="glass-heavy rounded-[2rem] shadow-xl shadow-black/5 p-8 sticky top-28">
-              <h3 className="text-xl font-bold text-[#1a1a2e] mb-6">Tambah Transaksi</h3>
-              <FormContent formData={formData} handleChange={handleChange} handleSubmit={handleSubmit} isSubmitting={isSubmitting} formatRupiah={formatRupiah} categories={categories} />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Glass FAB - Add Transaction (safe area aware) */}
-      <div
-        className="lg:hidden fixed right-6 z-50"
-        style={{ bottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
-      >
+    <AppShell header={header}>
+      {/* Navigasi bulan */}
+      <div className="mb-4 flex items-center justify-between">
         <button
-          onClick={() => setIsFormOpen(true)}
-          className="w-14 h-14 bg-linear-to-tr from-purple-500 to-pink-500 text-white rounded-full shadow-lg shadow-purple-500/20 flex items-center justify-center active:scale-90 transition-all"
+          onClick={() => changeMonth(-1)}
+          disabled={isFetching}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-4 text-primary transition-transform active:scale-90 disabled:opacity-50"
+          aria-label="Bulan sebelumnya"
         >
-          <FaPlus size={22} />
+          <IoChevronBack size={18} />
+        </button>
+        <h2 className="text-base leading-6 font-semibold text-ink capitalize">{monthLabel}</h2>
+        <button
+          onClick={() => changeMonth(1)}
+          disabled={isFetching}
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-4 text-primary transition-transform active:scale-90 disabled:opacity-50"
+          aria-label="Bulan berikutnya"
+        >
+          <IoChevronForward size={18} />
         </button>
       </div>
 
-      {/* Glass FAB - Statistik (mobile only, safe area aware) */}
+      {isFetching ? (
+        <div className="aspect-327/204 w-full animate-pulse rounded-[14px] bg-primary-4" />
+      ) : (
+        <SpendingCard
+          monthLabel={currentDate.toLocaleDateString("id-ID", { month: "long" })}
+          total={totalAmount}
+          transactionCount={transactions.length}
+          categoryCount={categoryStats.length}
+        />
+      )}
+
+      {/* Ringkasan per kategori — grid tile ala "Category" di Figma */}
+      {!isFetching && categoryStats.length > 0 && (
+        <section className="mt-8">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-base leading-6 font-semibold text-ink">Per kategori</h3>
+            <Link href="/statistik" className="text-xs leading-4 font-semibold text-primary">
+              Lihat statistik
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            {visibleCategoryStats.map((cat) => (
+              <div
+                key={cat.name}
+                className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-field bg-white px-2 text-center shadow-card"
+              >
+                <span
+                  className="flex h-9 w-9 items-center justify-center rounded-[10px] text-lg leading-none"
+                  style={{ backgroundColor: `${cat.color}26` }}
+                >
+                  {cat.emoji}
+                </span>
+                <p className="w-full truncate text-xs leading-4 font-medium text-subtle">{cat.name}</p>
+                <p className="w-full truncate text-xs leading-4 font-semibold text-ink">
+                  Rp{formatRupiah(cat.amount)}
+                </p>
+              </div>
+            ))}
+            {hasMoreCategories && (
+              <Link
+                href="/statistik"
+                className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-field bg-white text-center shadow-card"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-primary-4 text-primary">
+                  <IoArrowForward size={18} />
+                </span>
+                <p className="text-xs leading-4 font-medium text-subtle">
+                  +{categoryStats.length - visibleCategoryStats.length} lainnya
+                </p>
+              </Link>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Riwayat transaksi — "Row / Transaction" di Figma */}
+      <section className="mt-8">
+        <h3 className="text-base leading-6 font-semibold text-ink">Riwayat transaksi</h3>
+
+        {isFetching ? (
+          <SkeletonActivity />
+        ) : transactions.length === 0 ? (
+          <div className="py-14 text-center">
+            <p className="text-sm font-medium text-subtle">Belum ada transaksi nih. Yuk mulai catat!</p>
+          </div>
+        ) : (
+          sortedDates.map((dateKey) => (
+            <div key={dateKey}>
+              <div className="mt-6 mb-1 flex items-center justify-between">
+                <p className="text-xs leading-4 font-semibold text-subtle">{formatDateLabel(dateKey)}</p>
+                <p className="text-xs leading-4 font-semibold text-subtle">
+                  Rp{formatRupiah(groupedTransactions[dateKey].reduce((sum, item) => sum + Number(item.jumlah), 0))}
+                </p>
+              </div>
+              {groupedTransactions[dateKey].map((item) => (
+                <SwipeableItem
+                  key={item.id}
+                  item={item}
+                  categoryMap={categoryMap}
+                  onDelete={handleDeleteTransaction}
+                />
+              ))}
+            </div>
+          ))
+        )}
+
+        {transactions.length > 0 && !isFetching && (
+          <p className="mt-4 text-center text-xs text-placeholder">Geser item ke kanan untuk menghapus</p>
+        )}
+      </section>
+
+      {/* FAB tambah transaksi, sejajar dengan kolom aplikasi */}
       <div
-        className="lg:hidden fixed left-6 z-50"
-        style={{ bottom: 'calc(2rem + env(safe-area-inset-bottom, 0px))' }}
+        className="pointer-events-none fixed inset-x-0 z-50 mx-auto flex w-full max-w-md justify-end px-6"
+        style={{ bottom: "calc(72px + var(--sab) + 16px)" }}
       >
-        <Link
-          href="/statistik"
-          className="w-14 h-14 glass-heavy text-purple-600 rounded-full shadow-lg shadow-black/5 flex items-center justify-center active:scale-90 transition-all hover:bg-black/10"
+        <button
+          onClick={() => setIsFormOpen(true)}
+          className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-[0_8px_24px_rgba(54,41,183,0.35)] transition-transform active:scale-90"
+          aria-label="Tambah transaksi"
         >
-          <FaChartPie size={22} />
-        </Link>
+          <IoAdd size={28} />
+        </button>
       </div>
 
-      {/* Glass Bottom Sheet — iOS PWA fixed */}
-      <div
-        className={`lg:hidden fixed inset-0 z-[60] transition-all duration-300 ${isFormOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-        style={{
-          backgroundColor: isFormOpen ? 'rgba(0,0,0,0.4)' : 'transparent',
-          backdropFilter: isFormOpen ? 'blur(4px)' : 'none',
-          WebkitBackdropFilter: isFormOpen ? 'blur(4px)' : 'none',
-        }}
-        onClick={() => setIsFormOpen(false)}
-      >
-        <div
-          className={`absolute bottom-0 left-0 right-0 rounded-t-[2.5rem] border-t border-black/10 transition-transform duration-500 ease-out ${isFormOpen ? "translate-y-0" : "translate-y-full"}`}
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.94)',
-            backdropFilter: 'blur(40px)',
-            WebkitBackdropFilter: 'blur(40px)',
-            maxHeight: '90dvh',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Drag handle */}
-          <div className="flex-none pt-3 pb-1 flex justify-center">
-            <div className="w-10 h-1 bg-black/20 rounded-full" />
-          </div>
-
-          {/* Header */}
-          <div className="flex-none flex justify-between items-center px-8 py-5">
-            <h2 className="text-2xl font-bold text-[#1a1a2e]">Tambah Transaksi</h2>
-            <button
-              onClick={() => setIsFormOpen(false)}
-              className="p-2 glass rounded-full text-gray-500 hover:glass-heavy active:scale-90 transition-all"
-            >
-              <IoCloseOutline size={24} />
-            </button>
-          </div>
-
-          {/* Scrollable form content */}
-          <div
-            className="flex-1 overflow-y-auto px-8"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
-            <FormContent
-              formData={formData}
-              handleChange={handleChange}
-              handleSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              formatRupiah={formatRupiah}
-              categories={categories}
-            />
-            {/* Bottom padding respects iPhone home indicator */}
-            <div style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }} />
-          </div>
-        </div>
-      </div>
-
-      <style jsx>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
-    </div>
+      <BottomSheet open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Tambah transaksi">
+        <FormContent
+          formData={formData}
+          handleChange={handleChange}
+          handleSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          categories={categories}
+        />
+      </BottomSheet>
+    </AppShell>
   );
 }
 
-const SkeletonSummary = () => (
-  <div className="glass-heavy rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden">
-    <div className="p-8 space-y-6">
-      <div className="h-3 w-24 bg-black/10 rounded-lg animate-pulse" />
-      <div className="h-11 w-56 bg-black/10 rounded-xl animate-pulse" />
-      <div className="flex gap-3">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-14 w-28 bg-black/10 rounded-2xl animate-pulse" />
-        ))}
-      </div>
-    </div>
-    <div className="bg-black/5 px-8 py-4">
-      <div className="h-1.5 w-full bg-black/10 rounded-full animate-pulse" />
-    </div>
-  </div>
-);
-
 const SkeletonActivity = () => (
-  <div className="glass-heavy rounded-[2rem] shadow-xl shadow-black/5 overflow-hidden">
-    <div className="px-5 py-3">
-      <div className="h-3 w-32 bg-black/10 rounded-lg animate-pulse" />
-    </div>
+  <div className="mt-6 space-y-5">
     {[...Array(3)].map((_, i) => (
-      <div key={i} className="flex items-center justify-between p-5 border-t border-black/5">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-black/10 animate-pulse" />
-          <div className="space-y-2">
-            <div className="h-4 w-40 bg-black/10 rounded-lg animate-pulse" />
-            <div className="h-3 w-24 bg-black/10 rounded-lg animate-pulse" />
-          </div>
+      <div key={i} className="flex items-center gap-4">
+        <div className="h-10 w-10 animate-pulse rounded-[10px] bg-primary-4" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 w-36 animate-pulse rounded-lg bg-primary-4" />
+          <div className="h-3 w-20 animate-pulse rounded-lg bg-primary-4" />
         </div>
-        <div className="h-4 w-24 bg-black/10 rounded-lg animate-pulse" />
+        <div className="h-4 w-20 animate-pulse rounded-lg bg-primary-4" />
       </div>
     ))}
   </div>
@@ -478,233 +343,158 @@ const SwipeableItem = ({ item, categoryMap, onDelete }) => {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [startX, setStartX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
-  const swipeThreshold = 50; 
+  const swipeThreshold = 50;
   const maxSwipe = 80;
 
   const cat = categoryMap[item.kategori];
   const emoji = cat?.emoji || "➕";
-  const iconStyle = cat ? { backgroundColor: `${cat.color}20` } : {};
+  const color = cat?.color || FALLBACK_COLOR;
 
-  const handleTouchStart = (e) => {
-    setStartX(e.touches[0].clientX);
+  const startSwipe = (x) => {
+    setStartX(x);
     setIsSwiping(true);
   };
 
-  const handleTouchMove = (e) => {
+  const moveSwipe = (x) => {
     if (!isSwiping) return;
-    const currentX = e.touches[0].clientX;
-    const diff = currentX - startX;
-    
-    if (diff > 0) {
-      setSwipeOffset(Math.min(diff, maxSwipe));
-    } else {
-      setSwipeOffset(0);
-    }
+    const diff = x - startX;
+    setSwipeOffset(diff > 0 ? Math.min(diff, maxSwipe) : 0);
   };
 
-  const handleTouchEnd = () => {
+  const endSwipe = () => {
     setIsSwiping(false);
-    if (swipeOffset > swipeThreshold) {
-      setSwipeOffset(maxSwipe);
-    } else {
-      setSwipeOffset(0);
-    }
+    setSwipeOffset(swipeOffset > swipeThreshold ? maxSwipe : 0);
   };
 
-  const handleMouseStart = (e) => {
-    setStartX(e.clientX);
-    setIsSwiping(true);
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isSwiping) return;
-    const diff = e.clientX - startX;
-    if (diff > 0) setSwipeOffset(Math.min(diff, maxSwipe));
-  };
-
-  const handleMouseEnd = () => {
-    setIsSwiping(false);
-    if (swipeOffset > swipeThreshold) {
-      setSwipeOffset(maxSwipe);
-    } else {
-      setSwipeOffset(0);
-    }
-  };
+  const transition = isSwiping ? "none" : "transform 0.3s ease-out";
 
   return (
-    <div className="relative overflow-hidden group">
-      <div 
-        className="absolute inset-y-0 left-0 bg-red-500/90 backdrop-blur-md text-white flex items-center justify-center"
-        style={{ 
-          width: `${maxSwipe}px`,
-          transform: `translateX(${swipeOffset - maxSwipe}px)`,
-          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
-        }}
+    <div className="relative overflow-hidden border-b border-line">
+      <div
+        className="absolute inset-y-0 left-0 flex items-center justify-center rounded-r-field bg-danger text-white"
+        style={{ width: `${maxSwipe}px`, transform: `translateX(${swipeOffset - maxSwipe}px)`, transition }}
       >
-        <button 
+        <button
           onClick={() => {
             onDelete(item.id);
             setSwipeOffset(0);
           }}
-          className="w-full h-full flex items-center justify-center hover:bg-red-600/90 active:bg-red-700/90 transition-colors"
+          className="flex h-full w-full items-center justify-center"
+          aria-label="Hapus transaksi"
         >
-          <FaTrash size={18} />
+          <FaTrash size={16} />
         </button>
       </div>
 
-      <div 
-        className="flex items-center justify-between p-5 hover:bg-black/5 transition-colors active:bg-black/10 cursor-grab active:cursor-grabbing select-none"
-        style={{
-          transform: `translateX(${swipeOffset}px)`,
-          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseStart}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseEnd}
-        onMouseLeave={handleMouseEnd}
+      <div
+        className="flex cursor-grab items-center gap-4 bg-white py-3 select-none active:cursor-grabbing"
+        style={{ transform: `translateX(${swipeOffset}px)`, transition }}
+        onTouchStart={(e) => startSwipe(e.touches[0].clientX)}
+        onTouchMove={(e) => moveSwipe(e.touches[0].clientX)}
+        onTouchEnd={endSwipe}
+        onMouseDown={(e) => startSwipe(e.clientX)}
+        onMouseMove={(e) => moveSwipe(e.clientX)}
+        onMouseUp={endSwipe}
+        onMouseLeave={() => isSwiping && endSwipe()}
       >
-        <div className="flex items-center gap-4 pointer-events-none">
-          <div className="w-12 h-12 rounded-xl glass flex items-center justify-center text-xl" style={iconStyle}>
-            <span className="leading-none">{emoji}</span>
-          </div>
-          <div>
-            <p className="font-semibold text-[#1a1a2e]">{item.deskripsi || item.kategori}</p>
-            <p className="text-gray-500 text-xs font-medium capitalize">
-              {item.kategori}
-            </p>
-          </div>
+        <div
+          className="pointer-events-none flex h-10 w-10 flex-none items-center justify-center rounded-[10px] text-lg leading-none"
+          style={{ backgroundColor: `${color}26` }}
+        >
+          {emoji}
         </div>
-        <div className="flex items-center gap-3 pointer-events-none">
-          <p className="font-bold text-red-500 text-sm">
-            -Rp{Number(item.jumlah).toLocaleString("id-ID")}
-          </p>
+        <div className="pointer-events-none min-w-0 flex-1">
+          <p className="truncate text-base leading-6 font-medium text-ink">{item.deskripsi || capitalize(item.kategori)}</p>
+          <p className="text-xs leading-4 font-semibold text-subtle capitalize">{item.kategori}</p>
         </div>
+        <p className="pointer-events-none flex-none text-base leading-6 font-semibold text-danger">
+          - Rp{formatRupiah(item.jumlah)}
+        </p>
       </div>
     </div>
   );
 };
 
-const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, formatRupiah, categories }) => {
-  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
-
-  const selectedCategory = categories.find(c => c.name === formData.kategori);
+const FormContent = ({ formData, handleChange, handleSubmit, isSubmitting, categories }) => {
+  const isIncomplete = !formData.jumlah || !formData.kategori || !formData.tanggal;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 pb-2">
-      <div className="space-y-1">
-        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Keterangan</label>
-        <input
-          name="deskripsi"
-          value={formData.deskripsi}
-          onChange={handleChange}
-          type="text"
-          placeholder="Ngopi, makan siang, bensin..."
-          className="w-full px-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-base text-[#1a1a2e] placeholder-gray-400"
-        />
-      </div>
+      <Field
+        label="Jumlah"
+        id="jumlah"
+        name="jumlah"
+        prefix="Rp"
+        value={formData.jumlah ? formatRupiah(formData.jumlah) : ""}
+        onChange={handleChange}
+        type="text"
+        inputMode="numeric"
+        placeholder="0"
+        className="text-base font-semibold"
+      />
 
-      <div className="space-y-1">
-        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Tanggal</label>
-        <input
-          name="tanggal"
-          value={formData.tanggal}
-          onChange={handleChange}
-          type="date"
-          className="w-full px-4 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-sm text-[#1a1a2e] [color-scheme:light]"
-          style={{
-            WebkitAppearance: 'none',
-            appearance: 'none',
-            height: '52px',
-            lineHeight: '52px',
-            display: 'block',
-          }}
-        />
-      </div>
+      <Field
+        label="Keterangan"
+        id="deskripsi"
+        name="deskripsi"
+        value={formData.deskripsi}
+        onChange={handleChange}
+        type="text"
+        placeholder="Ngopi, makan siang, bensin..."
+      />
 
-      <div className="space-y-1">
-        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Jumlah</label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400 select-none z-10">Rp</span>
-          <input
-            name="jumlah"
-            value={formData.jumlah ? formatRupiah(formData.jumlah) : ""}
-            onChange={handleChange}
-            type="text"
-            inputMode="numeric"
-            placeholder="0"
-            className="w-full pl-11 pr-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-bold text-base text-[#1a1a2e] placeholder-gray-400"
-          />
-        </div>
-      </div>
+      <Field
+        label="Tanggal"
+        id="tanggal"
+        name="tanggal"
+        value={formData.tanggal}
+        onChange={handleChange}
+        type="date"
+        className="scheme-light"
+      />
 
-      <div className="space-y-1">
-        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Kategori</label>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-            className="w-full px-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-base text-[#1a1a2e] flex items-center justify-between"
+      <div>
+        <Label>Kategori</Label>
+        {categories.length === 0 ? (
+          <Link
+            href="/kategori"
+            className="block rounded-field border border-dashed border-field px-4 py-4 text-center text-sm font-medium text-primary"
           >
-            {selectedCategory ? (
-              <div className="flex items-center gap-3">
-                <div className="w-5 flex justify-center">
-                  <span className="text-lg leading-none">{selectedCategory.emoji}</span>
-                </div>
-                <span className="capitalize">{selectedCategory.name}</span>
-              </div>
-            ) : (
-              <span className="text-gray-400">Pilih Kategori</span>
-            )}
-            <IoChevronForward className={`transition-transform duration-200 text-gray-400 ${isCategoryOpen ? 'rotate-90' : ''}`} />
-          </button>
-
-          {isCategoryOpen && (
-            <div className="absolute z-20 w-full bottom-full mb-2 glass-heavy rounded-2xl shadow-xl shadow-black/10 p-3 overflow-hidden max-h-72 overflow-y-auto">
-              {categories.length === 0 ? (
-                <p className="text-center text-xs text-gray-400 py-3 font-medium">
-                  Belum ada kategori. Yuk buat dulu!
-                </p>
-              ) : (
-              <div className="grid grid-cols-4 gap-2">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => {
-                      handleChange({ target: { name: 'kategori', value: cat.name } });
-                      setIsCategoryOpen(false);
-                    }}
-                    className={`flex flex-col items-center justify-center gap-1.5 p-2 rounded-xl transition-all ${
-                      formData.kategori === cat.name 
-                        ? 'bg-purple-50 ring-1 ring-purple-300' 
-                        : 'hover:bg-black/5 active:bg-black/10'
-                    }`}
+            Belum ada kategori. Buat kategori dulu →
+          </Link>
+        ) : (
+          <div className="grid grid-cols-4 gap-2">
+            {categories.map((cat) => {
+              const isSelected = formData.kategori === cat.name;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleChange({ target: { name: "kategori", value: cat.name } })}
+                  aria-pressed={isSelected}
+                  className={`flex flex-col items-center gap-1.5 rounded-field px-1 py-2.5 transition-all ${
+                    isSelected ? "bg-primary-4 ring-2 ring-primary" : "bg-white ring-1 ring-line active:bg-primary-4"
+                  }`}
+                >
+                  <span
+                    className="flex h-8 w-8 items-center justify-center rounded-[10px] text-base leading-none"
+                    style={{ backgroundColor: `${cat.color}26` }}
                   >
-                    <div className="w-8 h-8 rounded-full glass flex items-center justify-center" style={{ backgroundColor: `${cat.color}20` }}>
-                      <span className="text-base leading-none">{cat.emoji}</span>
-                    </div>
-                    <span className="text-[9px] font-bold text-[#1a1a2e] text-center leading-tight capitalize">
-                      {cat.name}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              )}
-            </div>
-          )}
-        </div>
+                    {cat.emoji}
+                  </span>
+                  <span className={`w-full truncate text-center text-[11px] leading-tight font-medium capitalize ${isSelected ? "text-primary" : "text-ink"}`}>
+                    {cat.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full bg-linear-to-r from-purple-500 to-pink-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-500/20 active:scale-95 transition-all disabled:opacity-50 mt-2"
-      >
-        {isSubmitting ? "Lagi nyimpen nih..." : "Tambah Sekarang"}
-      </button>
+      <Button type="submit" disabled={isIncomplete} loading={isSubmitting} loadingText="Menyimpan..." className="mt-2">
+        Simpan transaksi
+      </Button>
     </form>
   );
 };

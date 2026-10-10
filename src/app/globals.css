@@ -1,73 +1,41 @@
 @import "tailwindcss";
 
+/* Design tokens — referensi Figma "iBank / FinPay" */
 @theme {
-  --font-sans: var(--font-outfit);
-  --animate-blob: blob 7s infinite;
-  --animate-gradient: gradient 8s ease infinite;
+  --font-sans: var(--font-poppins);
 
-  --color-glass-light: rgba(255, 255, 255, 0.15);
-  --color-glass-medium: rgba(255, 255, 255, 0.22);
-  --color-glass-heavy: rgba(255, 255, 255, 0.3);
-  --color-glass-border: rgba(0, 0, 0, 0.06);
-  --color-glass-border-hover: rgba(0, 0, 0, 0.12);
+  --color-primary: #3629b7;
+  --color-primary-2: #5655b9;
+  --color-primary-3: #a8a3d7;
+  --color-primary-4: #f2f1f9;
 
-  @keyframes blob {
-    0% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
-    100% { transform: translate(0px, 0px) scale(1); }
+  --color-ink: #343434;
+  --color-muted: #898989;
+  --color-subtle: #979797;
+  --color-placeholder: #cacaca;
+  --color-line: #e0e0e0;
+  --color-field: #cbcbcb;
+
+  --color-danger: #ff4267;
+  --color-info: #0890fe;
+  --color-warning: #ffaf2a;
+  --color-success: #52d5ba;
+  --color-orange: #fb6b18;
+
+  --shadow-card: 0 5px 30px 0 rgba(0, 0, 0, 0.05);
+  --shadow-soft: 0 4px 30px 0 rgba(54, 41, 183, 0.07);
+  --shadow-tab: 0 -5px 30px 0 rgba(54, 41, 183, 0.07);
+
+  --radius-field: 15px;
+  --radius-sheet: 30px;
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
-
-  @keyframes gradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-}
-
-@utility animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-@utility animation-delay-4000 {
-  animation-delay: 4s;
-}
-
-@utility glass {
-  background-color: var(--color-glass-medium);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border: 1px solid var(--color-glass-border);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-}
-
-@utility glass-heavy {
-  background-color: var(--color-glass-heavy);
-  backdrop-filter: blur(36px);
-  -webkit-backdrop-filter: blur(36px);
-  border: 1px solid var(--color-glass-border-hover);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-}
-
-@utility glass-light {
-  background-color: var(--color-glass-light);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--color-glass-border);
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
-}
-
-@utility glass-input {
-  background-color: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--color-glass-border);
-}
-
-@utility glass-input-focus {
-  background-color: rgba(255, 255, 255, 0.5);
-  border-color: rgba(168, 85, 247, 0.4);
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
 }
 
 * {
@@ -110,7 +78,6 @@ html, body {
 input[type="date"] {
   -webkit-appearance: none;
   appearance: none;
-  min-height: 52px;
   box-sizing: border-box;
   cursor: pointer;
 }

@@ -2,22 +2,37 @@
 
 import { useState, useMemo, useRef } from "react";
 import { pack, hierarchy } from "d3-hierarchy";
-import { FaArrowLeft, FaChartPie } from "react-icons/fa";
-import Link from "next/link";
+import AppShell from "@/components/ui/AppShell";
+import { formatRupiah, capitalize } from "@/lib/format";
 
 const CHART_W = 500;
 const CHART_H = 550;
-
-const formatRupiah = (v) => new Intl.NumberFormat("id-ID").format(v || 0);
+const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+const BAR_AREA_H = 140;
 
 export default function StatistikClient({ transactions, categories, year }) {
   const [filterCat, setFilterCat] = useState(null);
   const [hovered, setHovered] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
   const [chartWidth, setChartWidth] = useState(300);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return now.getFullYear() === year ? now.getMonth() : 11;
+  });
   const chartRef = useRef(null);
 
-  const { totalYear, topCategory, bubbles } = useMemo(() => {
+  const monthlyTotals = useMemo(() => {
+    const totals = Array(12).fill(0);
+    transactions.forEach((t) => {
+      const month = Number(t.tanggal.slice(5, 7)) - 1;
+      if (month >= 0 && month < 12) totals[month] += Number(t.jumlah);
+    });
+    return totals;
+  }, [transactions]);
+
+  const maxMonthly = Math.max(...monthlyTotals, 1);
+
+  const { totalYear, topCategory, bubbles, ranking } = useMemo(() => {
     const catTotals = {};
     transactions.forEach((t) => {
       const cat = t.kategori;
@@ -33,23 +48,23 @@ export default function StatistikClient({ transactions, categories, year }) {
     });
     const topCat = categories.find((c) => c.name === topId);
 
-    const rawData = {
-      id: "root",
-      children: categories.map((cat) => ({
+    const children = categories
+      .map((cat) => ({
         id: cat.name,
-        label:
-          cat.name.charAt(0).toUpperCase() + cat.name.slice(1),
+        label: capitalize(cat.name),
         value: catTotals[cat.name] || 0,
         color: cat.color,
         emoji: cat.emoji,
-      })).filter((d) => d.value > 0),
-    };
+      }))
+      .filter((d) => d.value > 0);
 
-    if (rawData.children.length === 0) {
-      return { totalYear: total, topCategory: topCat, bubbles: [] };
+    const sortedRanking = [...children].sort((a, b) => b.value - a.value);
+
+    if (children.length === 0) {
+      return { totalYear: total, topCategory: topCat, bubbles: [], ranking: [] };
     }
 
-    const root = hierarchy(rawData)
+    const root = hierarchy({ id: "root", children })
       .sum((d) => d.value)
       .sort((a, b) => b.value - a.value);
 
@@ -67,7 +82,7 @@ export default function StatistikClient({ transactions, categories, year }) {
       color: d.data.color,
     }));
 
-    return { totalYear: total, topCategory: topCat, bubbles: leaves };
+    return { totalYear: total, topCategory: topCat, bubbles: leaves, ranking: sortedRanking };
   }, [transactions, categories]);
 
   const handleBubbleHover = (e, b) => {
@@ -86,77 +101,146 @@ export default function StatistikClient({ transactions, categories, year }) {
     ? bubbles.filter((b) => b.id === filterCat)
     : bubbles;
 
-  return (
-    <div className="min-h-screen text-[#1a1a2e] font-sans relative">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-15%] left-[-10%] w-[800px] h-[800px] bg-purple-400/25 rounded-full blur-[150px] animate-blob"></div>
-        <div className="absolute top-[15%] right-[-15%] w-[700px] h-[700px] bg-pink-400/25 rounded-full blur-[150px] animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[-15%] left-[15%] w-[750px] h-[750px] bg-blue-400/25 rounded-full blur-[150px] animate-blob animation-delay-4000"></div>
-      </div>
+  const chipClass = (active) =>
+    `flex h-8 flex-none items-center gap-1.5 rounded-full px-3 text-xs font-medium whitespace-nowrap transition-colors ${
+      active ? "bg-primary text-white" : "bg-primary-4 text-primary-2"
+    }`;
 
-      <div className="container mx-auto px-4 py-4 sm:py-6 max-w-6xl relative z-10">
-        <div className="flex items-center gap-3 mb-6">
-          <Link
-            href="/"
-            className="glass-heavy p-2.5 sm:p-3 rounded-xl hover:bg-black/5 transition-all active:scale-90"
-          >
-            <FaArrowLeft size={16} className="text-purple-500" />
-          </Link>
-          <div>
-            <h1 className="text-lg sm:text-2xl font-bold leading-tight">Statistik</h1>
-            <p className="text-xs sm:text-sm text-white/50">Tahun {year}</p>
+  return (
+    <AppShell title={`Statistik ${year}`}>
+      {/* Kartu grafik bulanan — "Chart" di Figma Transaction report */}
+      <section className="rounded-sheet bg-white p-4 shadow-soft">
+        <p className="text-xs leading-4 font-semibold text-ink">
+          Pengeluaran {new Date(year, selectedMonth).toLocaleDateString("id-ID", { month: "long" })}
+        </p>
+        <p className="mt-1 flex items-baseline gap-1.5">
+          <span className="text-[32px] leading-7 font-medium text-primary">
+            {formatRupiah(monthlyTotals[selectedMonth])}
+          </span>
+          <span className="text-xs leading-4 font-semibold text-subtle">IDR</span>
+        </p>
+
+        <div className="relative mt-6" style={{ height: BAR_AREA_H }}>
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="absolute inset-x-0 border-t border-dashed border-line"
+              style={{ top: `${(i / 3) * 100}%` }}
+            />
+          ))}
+          <div className="relative flex h-full items-end justify-between">
+            {monthlyTotals.map((amount, i) => {
+              const isSelected = i === selectedMonth;
+              const height = amount > 0 ? Math.max((amount / maxMonthly) * BAR_AREA_H, 8) : 4;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setSelectedMonth(i)}
+                  className="flex h-full w-full items-end justify-center"
+                  aria-label={`${MONTH_LABELS[i]}: Rp${formatRupiah(amount)}`}
+                  aria-pressed={isSelected}
+                >
+                  <span
+                    className={`block w-2 rounded-full transition-all duration-300 ${
+                      amount === 0 ? "bg-line" : isSelected ? "bg-primary" : "bg-primary-3"
+                    }`}
+                    style={{ height }}
+                  />
+                </button>
+              );
+            })}
           </div>
         </div>
+        <div className="mt-3 flex justify-between">
+          {MONTH_LABELS.map((label, i) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => setSelectedMonth(i)}
+              className={`w-full text-center text-[11px] leading-4 font-semibold ${
+                i === selectedMonth ? "text-primary" : "text-placeholder"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
-          <div className="glass-heavy rounded-2xl p-4 sm:p-6">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Total Tahun Ini</p>
-            <p className="text-xl sm:text-2xl font-bold mt-2">Rp{formatRupiah(totalYear)}</p>
-          </div>
-          <div className="glass-heavy rounded-2xl p-4 sm:p-6">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Rata-rata / Bulan</p>
-            <p className="text-xl sm:text-2xl font-bold mt-2">Rp{formatRupiah(Math.round(totalYear / 12))}</p>
-          </div>
-          <div className="glass-heavy rounded-2xl p-4 sm:p-6">
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Kategori Terbanyak</p>
-            <p className="text-xl sm:text-2xl font-bold mt-2 text-purple-600">
-              {topCategory
-                ? topCategory.name.charAt(0).toUpperCase() + topCategory.name.slice(1)
-                : "-"}
+      {/* Ringkasan tahunan */}
+      <section className="mt-6 grid grid-cols-2 gap-4">
+        <div className="rounded-field bg-white p-4 shadow-card">
+          <p className="text-xs leading-4 font-semibold text-subtle">Total tahun ini</p>
+          <p className="mt-2 truncate text-base leading-6 font-semibold text-ink">Rp{formatRupiah(totalYear)}</p>
+        </div>
+        <div className="rounded-field bg-white p-4 shadow-card">
+          <p className="text-xs leading-4 font-semibold text-subtle">Rata-rata / bulan</p>
+          <p className="mt-2 truncate text-base leading-6 font-semibold text-ink">
+            Rp{formatRupiah(Math.round(totalYear / 12))}
+          </p>
+        </div>
+        <div className="col-span-2 flex items-center gap-4 rounded-field bg-white p-4 shadow-card">
+          <span
+            className="flex h-10 w-10 flex-none items-center justify-center rounded-[10px] text-lg leading-none"
+            style={{ backgroundColor: topCategory ? `${topCategory.color}26` : undefined }}
+          >
+            {topCategory?.emoji || "—"}
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs leading-4 font-semibold text-subtle">Kategori terbanyak</p>
+            <p className="truncate text-base leading-6 font-semibold text-primary">
+              {topCategory ? capitalize(topCategory.name) : "-"}
             </p>
           </div>
         </div>
+      </section>
 
-        <div className="glass-heavy rounded-[2rem] p-3 sm:p-6 md:p-8 shadow-xl shadow-black/5">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <h2 className="text-base sm:text-lg font-bold">Distribusi per Kategori</h2>
-            <FaChartPie className="text-purple-500 text-base sm:text-lg" />
+      {/* Distribusi per kategori */}
+      <section className="mt-8">
+        <h2 className="mb-4 text-base leading-6 font-semibold text-ink">Distribusi per kategori</h2>
+
+        {bubbles.length === 0 ? (
+          <div className="rounded-sheet bg-primary-4 py-14 text-center">
+            <p className="text-sm font-medium text-subtle">Belum ada transaksi tahun ini</p>
           </div>
-
-          {bubbles.length === 0 ? (
-            <div className="py-16 sm:py-20 text-center">
-              <p className="text-gray-400 font-medium italic">Belum ada transaksi tahun ini</p>
+        ) : (
+          <>
+            <div className="no-scrollbar -mx-6 mb-4 flex gap-2 overflow-x-auto px-6">
+              <button onClick={() => setFilterCat(null)} className={chipClass(filterCat === null)}>
+                Semua
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setFilterCat(filterCat === cat.name ? null : cat.name)}
+                  className={chipClass(filterCat === cat.name)}
+                >
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                  <span className="capitalize">{cat.name}</span>
+                </button>
+              ))}
             </div>
-          ) : (
-            <>
+
+            <div className="rounded-sheet bg-white p-3 shadow-soft">
               <div className="relative w-full" ref={chartRef}>
                 <svg
                   viewBox={`0 0 ${CHART_W} ${CHART_H}`}
                   preserveAspectRatio="xMidYMid meet"
-                  className="w-full h-auto max-h-[65vh] sm:max-h-[70vh]"
+                  className="h-auto max-h-[60vh] w-full"
                 >
-                  {visibleBubbles.map((b, i) => (
+                  {visibleBubbles.map((b) => (
                     <g key={b.id}>
                       <circle
                         cx={b.x}
                         cy={b.y}
                         r={Math.max(b.r - 1, 0)}
                         fill={b.color}
-                        fillOpacity={hovered?.id === b.id ? 0.85 : 0.55}
+                        fillOpacity={hovered?.id === b.id ? 0.85 : 0.6}
                         stroke={b.color}
                         strokeWidth={hovered?.id === b.id ? 2 : 1}
                         strokeOpacity={0.8}
-                        className="transition-all duration-200 cursor-pointer"
+                        className="cursor-pointer transition-all duration-200"
                         onMouseEnter={(e) => handleBubbleHover(e, b)}
                         onMouseMove={(e) => handleBubbleHover(e, b)}
                         onMouseLeave={() => setHovered(null)}
@@ -181,7 +265,7 @@ export default function StatistikClient({ transactions, categories, year }) {
                             textAnchor="middle"
                             fill="white"
                             fontSize={b.r > 50 ? 13 : b.r > 30 ? 11 : 9}
-                            fontWeight={700}
+                            fontWeight={600}
                             className="pointer-events-none select-none"
                           >
                             {b.label}
@@ -193,9 +277,9 @@ export default function StatistikClient({ transactions, categories, year }) {
                           x={b.x}
                           y={b.y + (b.r > 40 ? 14 : 12)}
                           textAnchor="middle"
-                          fill="rgba(255,255,255,0.8)"
+                          fill="rgba(255,255,255,0.85)"
                           fontSize={b.r > 50 ? 11 : 9}
-                          fontWeight={600}
+                          fontWeight={500}
                           className="pointer-events-none select-none"
                         >
                           Rp{formatRupiah(b.value)}
@@ -207,46 +291,50 @@ export default function StatistikClient({ transactions, categories, year }) {
 
                 {hovered && (
                   <div
-                    className="absolute glass-heavy rounded-xl px-3 py-2.5 shadow-xl border border-black/10 pointer-events-none z-20"
+                    className="pointer-events-none absolute z-20 rounded-field bg-white px-3 py-2.5 shadow-soft ring-1 ring-line"
                     style={{
                       left: Math.min(tooltipPos.x + 16, chartWidth - 150),
                       top: Math.max(tooltipPos.y - 70, 0) + 10,
                     }}
                   >
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">{hovered.label}</p>
-                    <p className="text-sm font-bold text-purple-600 mt-0.5">
-                      Rp{formatRupiah(hovered.value)}
-                    </p>
+                    <p className="text-xs font-semibold text-subtle">{hovered.label}</p>
+                    <p className="mt-0.5 text-sm font-semibold text-primary">Rp{formatRupiah(hovered.value)}</p>
                   </div>
                 )}
               </div>
+            </div>
 
-              <div className="flex flex-nowrap sm:flex-wrap gap-1.5 sm:gap-2 mt-4 sm:mt-6 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 -mx-4 sm:mx-0 px-4 sm:px-0">
-                <button
-                  onClick={() => setFilterCat(null)}
-                  className={`flex-none glass rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-xs transition-all whitespace-nowrap ${
-                    filterCat === null ? "ring-1 ring-gray-300 bg-black/5" : "hover:bg-black/5"
-                  }`}
-                >
-                  Semua
-                </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setFilterCat(filterCat === cat.name ? null : cat.name)}
-                    className={`flex-none flex items-center gap-1.5 glass rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-1.5 text-xs transition-all whitespace-nowrap ${
-                      filterCat === cat.name ? "ring-1 ring-gray-300 bg-black/5" : "hover:bg-black/5"
-                    }`}
-                  >
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
-                    <span className="text-gray-600 capitalize">{cat.name}</span>
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+            {/* Peringkat kategori — lebih mudah dibaca di ponsel */}
+            <ul className="mt-4">
+              {ranking.map((cat) => {
+                const percentage = totalYear > 0 ? (cat.value / totalYear) * 100 : 0;
+                return (
+                  <li key={cat.id} className="flex items-center gap-4 border-b border-line py-3">
+                    <span
+                      className="flex h-10 w-10 flex-none items-center justify-center rounded-[10px] text-lg leading-none"
+                      style={{ backgroundColor: `${cat.color}26` }}
+                    >
+                      {cat.emoji}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <p className="truncate text-base leading-6 font-medium text-ink">{cat.label}</p>
+                        <p className="flex-none text-sm font-semibold text-ink">Rp{formatRupiah(cat.value)}</p>
+                      </div>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-primary-4">
+                          <div className="h-full rounded-full" style={{ width: `${percentage}%`, backgroundColor: cat.color }} />
+                        </div>
+                        <span className="w-10 text-right text-xs font-semibold text-subtle">{Math.round(percentage)}%</span>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+      </section>
+    </AppShell>
   );
 }

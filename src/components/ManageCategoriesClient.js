@@ -2,35 +2,32 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import {
-  FaPlus,
-  FaTags,
-  FaTrash,
-  FaEdit,
-  FaTimes,
-  FaCheckCircle,
-} from "react-icons/fa";
-import { IoChevronBack } from "react-icons/io5";
+import { IoAdd, IoCreateOutline, IoTrashOutline, IoPricetagsOutline, IoCheckmark } from "react-icons/io5";
+import AppShell from "@/components/ui/AppShell";
+import BottomSheet from "@/components/ui/BottomSheet";
+import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
+import Field, { Label, FieldError, inputClass } from "@/components/ui/Field";
+import { capitalize } from "@/lib/format";
 
-const FALLBACK_COLOR = "#8E8E93";
+const DEFAULT_COLOR = "#8E8E93";
 
-const formatName = (name) =>
-  name ? name.charAt(0).toUpperCase() + name.slice(1) : "";
+// Palet semantic dari Figma sebagai pilihan cepat
+const COLOR_PRESETS = ["#3629B7", "#5655B9", "#FF4267", "#0890FE", "#FFAF2A", "#52D5BA", "#FB6B18", "#8E8E93"];
 
 const ManageCategoriesClient = ({ initialCategories }) => {
   const router = useRouter();
   const [categories, setCategories] = useState(initialCategories || []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [formData, setFormData] = useState({ name: "", emoji: "", color: "#8E8E93" });
+  const [formData, setFormData] = useState({ name: "", emoji: "", color: DEFAULT_COLOR });
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState("");
 
   const openCreate = () => {
     setEditing(null);
-    setFormData({ name: "", emoji: "", color: "#8E8E93" });
+    setFormData({ name: "", emoji: "", color: DEFAULT_COLOR });
     setErrors({});
     setSuccess("");
     setIsModalOpen(true);
@@ -119,7 +116,7 @@ const ManageCategoriesClient = ({ initialCategories }) => {
 
   const handleDelete = async (cat) => {
     const ok = window.confirm(
-      `Hapus kategori "${formatName(cat.name)}"? Transaksi lama tetap tersimpan.`
+      `Hapus kategori "${capitalize(cat.name)}"? Transaksi lama tetap tersimpan.`
     );
     if (!ok) return;
 
@@ -141,215 +138,156 @@ const ManageCategoriesClient = ({ initialCategories }) => {
     }
   };
 
-  return (
-    <div className="min-h-screen text-[#1a1a2e] font-sans relative">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-15%] left-[-10%] w-[800px] h-[800px] bg-purple-400/25 rounded-full blur-[150px] animate-blob"></div>
-        <div className="absolute top-[15%] right-[-15%] w-[700px] h-[700px] bg-pink-400/25 rounded-full blur-[150px] animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[-15%] left-[15%] w-[750px] h-[750px] bg-blue-400/25 rounded-full blur-[150px] animate-blob animation-delay-4000"></div>
-      </div>
+  const iconButtonClass =
+    "flex h-9 w-9 items-center justify-center rounded-full text-muted transition-colors active:scale-90";
 
-      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-4xl relative z-10">
-        <div className="flex items-center gap-3 mb-6">
-          <Link
-            href="/"
-            className="glass-heavy p-2.5 sm:p-3 rounded-xl hover:bg-black/5 transition-all active:scale-90"
-          >
-            <IoChevronBack size={16} className="text-purple-500" />
-          </Link>
-          <div>
-            <h1 className="text-lg sm:text-2xl font-bold leading-tight">Kelola Kategori</h1>
-            <p className="text-xs sm:text-sm text-gray-500">
-              Atur kategori pengeluaran kamu sendiri 🏷️
+  return (
+    <AppShell title="Kategori">
+      <p className="text-xs leading-4 font-medium text-ink">Atur kategori pengeluaran kamu sendiri</p>
+
+      <Button onClick={openCreate} className="mt-4">
+        <IoAdd size={20} />
+        Tambah kategori
+      </Button>
+
+      <Alert tone="success" className="mt-4">{success}</Alert>
+
+      {categories.length === 0 ? (
+        <div className="mt-6 rounded-sheet bg-primary-4 py-14 text-center">
+          <IoPricetagsOutline className="mx-auto mb-3 text-primary-3" size={32} />
+          <p className="text-sm font-medium text-subtle">Belum ada kategori nih. Yuk buat satu!</p>
+        </div>
+      ) : (
+        <ul className="mt-4">
+          {categories.map((cat) => (
+            <li key={cat.id} className="flex items-center gap-4 border-b border-line py-3">
+              <span
+                className="flex h-10 w-10 flex-none items-center justify-center rounded-[10px] text-lg leading-none"
+                style={{ backgroundColor: `${cat.color}26` }}
+              >
+                {cat.emoji}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-base leading-6 font-medium text-ink">{capitalize(cat.name)}</p>
+                <p className="flex items-center gap-1.5 text-xs leading-4 font-semibold text-subtle uppercase">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                  {cat.color}
+                </p>
+              </div>
+              <div className="flex flex-none items-center">
+                <button
+                  onClick={() => openEdit(cat)}
+                  className={`${iconButtonClass} hover:bg-primary-4 hover:text-primary`}
+                  aria-label={`Edit ${cat.name}`}
+                >
+                  <IoCreateOutline size={20} />
+                </button>
+                <button
+                  onClick={() => handleDelete(cat)}
+                  className={`${iconButtonClass} hover:bg-danger/10 hover:text-danger`}
+                  aria-label={`Hapus ${cat.name}`}
+                >
+                  <IoTrashOutline size={20} />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <BottomSheet
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editing ? "Edit kategori" : "Kategori baru"}
+      >
+        <form onSubmit={handleSubmit} className="space-y-5 pb-2">
+          <Alert tone="error">{errors.general}</Alert>
+
+          <div className="flex items-center gap-4 rounded-field bg-primary-4 p-3">
+            <span
+              className="flex h-12 w-12 flex-none items-center justify-center rounded-[10px] bg-white text-2xl leading-none"
+              style={{ backgroundColor: `${formData.color}26` }}
+            >
+              {formData.emoji || "🏷️"}
+            </span>
+            <p className="truncate text-base font-medium text-ink">
+              {formData.name ? capitalize(formData.name) : "Pratinjau kategori"}
             </p>
           </div>
-        </div>
 
-        {success && (
-          <div className="glass border-l-4 border-green-400 text-green-600 p-4 rounded-2xl text-sm mb-4 flex items-center gap-2">
-            <FaCheckCircle />
-            <p>{success}</p>
-          </div>
-        )}
-
-        <div className="glass-heavy rounded-[2rem] shadow-xl shadow-black/5 p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
-              <FaTags className="text-purple-500" />
-              Daftar Kategori
-            </h2>
-            <button
-              onClick={openCreate}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-linear-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-500/20 hover:from-purple-400 hover:to-pink-400 active:scale-95 transition-all"
-            >
-              <FaPlus />
-              Tambah
-            </button>
-          </div>
-
-          {categories.length === 0 ? (
-            <div className="py-16 text-center text-gray-400">
-              <FaTags className="mx-auto text-3xl mb-3 opacity-40" />
-              <p className="font-medium italic">Belum ada kategori nih. Yuk buat satu!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {categories.map((cat) => (
-                <div
-                  key={cat.id}
-                  className="flex items-center justify-between gap-3 glass rounded-2xl p-4 transition-all hover:shadow-lg hover:shadow-black/5"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-none"
-                      style={{ backgroundColor: `${cat.color}20` }}
-                    >
-                      <span className="leading-none">{cat.emoji}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-[#1a1a2e] capitalize truncate">{formatName(cat.name)}</p>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span
-                          className="w-3 h-3 rounded-full flex-none"
-                          style={{ backgroundColor: cat.color }}
-                        />
-                        <span className="text-[10px] font-bold text-gray-400 uppercase">{cat.color}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 flex-none">
-                    <button
-                      onClick={() => openEdit(cat)}
-                      className="p-2 rounded-lg text-gray-500 hover:bg-purple-50 hover:text-purple-600 transition-colors active:scale-90"
-                      aria-label={`Edit ${cat.name}`}
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(cat)}
-                      className="p-2 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors active:scale-90"
-                      aria-label={`Hapus ${cat.name}`}
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-          onClick={() => setIsModalOpen(false)}
-        >
-          <div
-            className="absolute inset-0"
-            style={{ backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
+          <Field
+            label="Nama kategori"
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            type="text"
+            placeholder="Misal: Makan siang, Jajan anak..."
+            error={errors.name}
           />
-          <div
-            className="relative w-full sm:max-w-md glass-heavy rounded-t-[2rem] sm:rounded-[2rem] p-6 sm:p-8 shadow-2xl border-t border-black/10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-[#1a1a2e]">
-                {editing ? "Edit Kategori" : "Kategori Baru"}
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 glass rounded-full text-gray-500 hover:bg-black/5 active:scale-90 transition-all"
-              >
-                <FaTimes />
-              </button>
+
+          <Field
+            label="Emoji"
+            id="emoji"
+            name="emoji"
+            value={formData.emoji}
+            onChange={handleChange}
+            type="text"
+            autoComplete="off"
+            placeholder="Contoh: 🍜 (dari keyboard emoji kamu)"
+            error={errors.emoji}
+          />
+
+          <div>
+            <Label htmlFor="color-text">Warna</Label>
+            <div className="mb-3 flex flex-wrap gap-2.5">
+              {COLOR_PRESETS.map((color) => {
+                const isSelected = formData.color.toLowerCase() === color.toLowerCase();
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => handleChange({ target: { name: "color", value: color } })}
+                    className={`flex h-8 w-8 items-center justify-center rounded-full text-white transition-transform active:scale-90 ${
+                      isSelected ? "ring-2 ring-offset-2" : ""
+                    }`}
+                    style={{ backgroundColor: color, "--tw-ring-color": color }}
+                    aria-label={`Pilih warna ${color}`}
+                    aria-pressed={isSelected}
+                  >
+                    {isSelected && <IoCheckmark size={16} />}
+                  </button>
+                );
+              })}
             </div>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {errors.general && (
-                <div className="glass border-l-4 border-red-400 text-red-500 p-4 rounded-xl text-sm">
-                  <p>{errors.general}</p>
-                </div>
-              )}
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">
-                  Nama Kategori
-                </label>
-                <input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  type="text"
-                  placeholder="Misal: Makan Siang, Jajan Anak..."
-                  className={`w-full px-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-base text-[#1a1a2e] placeholder-gray-400 ${errors.name ? "ring-2 ring-red-500/30" : ""}`}
-                />
-                {errors.name && (
-                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.name}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">
-                  Emoji
-                </label>
-                <input
-                  name="emoji"
-                  value={formData.emoji}
-                  onChange={handleChange}
-                  type="text"
-                  inputMode="none"
-                  autoComplete="off"
-                  placeholder="Contoh: 🍜 (dari keyboard emoji kamu)"
-                  className={`w-full px-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-base text-[#1a1a2e] placeholder-gray-400 ${errors.emoji ? "ring-2 ring-red-500/30" : ""}`}
-                />
-                {errors.emoji && (
-                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.emoji}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">
-                  Warna
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    name="color"
-                    value={formData.color}
-                    onChange={handleChange}
-                    type="color"
-                    className="w-12 h-12 rounded-xl border border-black/10 bg-transparent cursor-pointer p-1 flex-none"
-                  />
-                  <input
-                    name="color"
-                    value={formData.color}
-                    onChange={handleChange}
-                    type="text"
-                    placeholder="#FF3B30"
-                    className={`w-full px-4 py-3.5 rounded-xl glass-input focus:glass-input-focus transition-all outline-none font-medium text-base text-[#1a1a2e] placeholder-gray-400 uppercase ${errors.color ? "ring-2 ring-red-500/30" : ""}`}
-                  />
-                </div>
-                {errors.color && (
-                  <p className="mt-1 text-xs text-red-500 font-medium">{errors.color}</p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="w-full flex justify-center py-4 px-4 rounded-2xl shadow-xl shadow-purple-500/20 text-base font-bold text-white bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 transform transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {isSaving
-                  ? "Lagi nyimpen nih..."
-                  : editing
-                  ? "Simpan Perubahan"
-                  : "Tambah Kategori"}
-              </button>
-            </form>
+            <div className="flex items-center gap-3">
+              <input
+                name="color"
+                value={formData.color}
+                onChange={handleChange}
+                type="color"
+                aria-label="Pilih warna kustom"
+                className="h-11 w-11 flex-none cursor-pointer rounded-field border border-field bg-transparent p-1"
+              />
+              <input
+                id="color-text"
+                name="color"
+                value={formData.color}
+                onChange={handleChange}
+                type="text"
+                placeholder="#FF3B30"
+                className={`${inputClass(errors.color)} uppercase`}
+              />
+            </div>
+            <FieldError>{errors.color}</FieldError>
           </div>
-        </div>
-      )}
-    </div>
+
+          <Button type="submit" loading={isSaving} loadingText="Menyimpan...">
+            {editing ? "Simpan perubahan" : "Tambah kategori"}
+          </Button>
+        </form>
+      </BottomSheet>
+    </AppShell>
   );
 };
 

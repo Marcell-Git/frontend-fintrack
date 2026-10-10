@@ -1,10 +1,10 @@
-import { Outfit } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 
-const outfit = Outfit({
+const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
-  variable: "--font-outfit",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-poppins",
 });
 
 export const metadata = {
@@ -13,7 +13,7 @@ export const metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "FinTrack",
   },
   icons: {
@@ -23,7 +23,7 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: "#f5f5f7",
+  themeColor: "#3629b7",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -36,20 +36,11 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="FinTrack" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </head>
-      <body
-        className={`${outfit.variable} font-sans antialiased bg-[#f5f5f7] text-[#1a1a2e]`}
-        style={{
-          backgroundImage: `
-            radial-gradient(ellipse at 10% 30%, rgba(168,85,247,0.08) 0%, transparent 50%),
-            radial-gradient(ellipse at 90% 20%, rgba(236,72,153,0.08) 0%, transparent 50%),
-            radial-gradient(ellipse at 50% 80%, rgba(59,130,246,0.08) 0%, transparent 50%)
-          `
-        }}
-      >
+      <body className={`${poppins.variable} font-sans antialiased bg-primary-4 text-ink`}>
         {children}
       </body>
     </html>

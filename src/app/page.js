@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Navbar from "@/components/Navbar";
 import DashboardClient from "@/components/DashboardClient";
 import { fetchWithAuth } from "@/lib/api";
 
@@ -21,12 +20,10 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen">
-      <Navbar user={user} />
-      <DashboardClient
-        initialTransactions={transactions}
-        initialCategories={categories || []}
-      />
-    </div>
+    <DashboardClient
+      user={user}
+      initialTransactions={transactions}
+      initialCategories={categories || []}
+    />
   );
 }

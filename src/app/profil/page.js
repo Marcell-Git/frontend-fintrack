@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Navbar from "@/components/Navbar";
 import ProfilClient from "@/components/ProfilClient";
 import { fetchWithAuth } from "@/lib/api";
 
@@ -11,9 +10,6 @@ export default async function ProfilPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <Navbar user={user} />
-      <ProfilClient user={user} />
-    </div>
+    <ProfilClient user={user} />
   );
 }

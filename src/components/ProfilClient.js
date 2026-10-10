@@ -1,11 +1,26 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FaKey, FaLock, FaCheckCircle, FaEnvelope } from "react-icons/fa";
+import { IoChevronForward } from "react-icons/io5";
 import { supabase } from "@/lib/supabase";
+import AppShell from "@/components/ui/AppShell";
+import Button from "@/components/ui/Button";
+import Alert from "@/components/ui/Alert";
+import Field from "@/components/ui/Field";
+import { displayName } from "@/lib/format";
+
+const VIEW_TITLES = {
+  password: "Ubah password",
+  email: "Ubah email",
+};
+
+// Baris menu sesuai "Row / Infomation" di Figma
+const rowClass = "flex h-[52px] w-full items-center justify-between gap-3 border-b border-line text-left";
 
 const ProfilClient = ({ user }) => {
   const router = useRouter();
+  const [view, setView] = useState(null);
   const [formData, setFormData] = useState({
     oldPassword: "",
     newPassword: "",
@@ -21,8 +36,8 @@ const ProfilClient = ({ user }) => {
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [emailSuccess, setEmailSuccess] = useState("");
-  const [tab, setTab] = useState("password");
   const [currentEmail, setCurrentEmail] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -35,6 +50,21 @@ const ProfilClient = ({ user }) => {
       mounted = false;
     };
   }, []);
+
+  const email = currentEmail || user?.email || "";
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await supabase.auth.signOut();
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout failed:", error);
+      setIsLoggingOut(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -202,310 +232,132 @@ const ProfilClient = ({ user }) => {
     }
   };
 
-  return (
-    <div className="max-w-xl mx-auto px-4 py-8">
-      <div className="mb-6 text-center">
-        <div className="w-14 h-14 text-lg font-black glass-heavy rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/20">
-          <span className="bg-linear-to-tr from-purple-500 to-pink-500 bg-clip-text text-transparent">
-            <FaKey />
-          </span>
-        </div>
-        <h1 className="text-2xl font-black text-[#1a1a2e] tracking-tight">
-          Pengaturan Akun
-        </h1>
-        <p className="text-gray-500 text-sm font-medium mt-1">
-          Kelola akun <span className="font-bold text-purple-600">{user?.email}</span> kamu 🔐
+  if (view === "password") {
+    return (
+      <AppShell title={VIEW_TITLES.password} onBack={() => setView(null)}>
+        <p className="mb-6 text-xs leading-4 font-medium text-ink">Ganti password untuk menjaga akun tetap aman</p>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <Alert tone="success">{success}</Alert>
+          <Alert tone="error">{errors.general}</Alert>
+
+          <Field
+            label="Password lama"
+            type="password"
+            id="oldPassword"
+            name="oldPassword"
+            value={formData.oldPassword}
+            onChange={handleChange}
+            placeholder="Password lama kamu"
+            autoComplete="current-password"
+            error={errors.oldPassword}
+          />
+          <Field
+            label="Password baru"
+            type="password"
+            id="newPassword"
+            name="newPassword"
+            value={formData.newPassword}
+            onChange={handleChange}
+            placeholder="Minimal 6 karakter"
+            autoComplete="new-password"
+            error={errors.newPassword}
+          />
+          <Field
+            label="Konfirmasi password baru"
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            placeholder="Ulangi password baru"
+            autoComplete="new-password"
+            error={errors.confirmPassword}
+          />
+
+          <Button type="submit" loading={isLoading} className="mt-8!">
+            Simpan password baru
+          </Button>
+        </form>
+      </AppShell>
+    );
+  }
+
+  if (view === "email") {
+    return (
+      <AppShell title={VIEW_TITLES.email} onBack={() => setView(null)}>
+        <p className="mb-6 text-xs leading-4 font-medium text-ink">
+          Email saat ini: <span className="font-semibold text-primary">{email || "—"}</span>
         </p>
+        <form onSubmit={handleEmailSubmit} className="space-y-5">
+          <Alert tone="success">{emailSuccess}</Alert>
+          <Alert tone="error">{emailErrors.general}</Alert>
 
-        <div className="mt-6 inline-flex glass-heavy rounded-2xl p-1 gap-1">
-          <button
-            type="button"
-            onClick={() => setTab("password")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
-              tab === "password"
-                ? "bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/20"
-                : "text-gray-500 hover:text-purple-600"
-            }`}
-          >
-            <FaLock />
-            Ubah Password
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("email")}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
-              tab === "email"
-                ? "bg-linear-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/20"
-                : "text-gray-500 hover:text-purple-600"
-            }`}
-          >
-            <FaEnvelope />
-            Ubah Email
-          </button>
-        </div>
-      </div>
+          <Field
+            label="Email baru"
+            type="email"
+            id="newEmail"
+            name="newEmail"
+            value={emailForm.newEmail}
+            onChange={handleEmailChange}
+            placeholder="Email baru yang kamu mau"
+            autoComplete="email"
+            error={emailErrors.newEmail}
+          />
+          <Field
+            label="Konfirmasi email baru"
+            type="email"
+            id="confirmEmail"
+            name="confirmEmail"
+            value={emailForm.confirmEmail}
+            onChange={handleEmailChange}
+            placeholder="Ulangi email baru"
+            autoComplete="email"
+            error={emailErrors.confirmEmail}
+          />
 
-      {tab === "password" && (
-      <div className="glass-heavy rounded-3xl shadow-lg shadow-black/5 p-8">
-        <div className="mb-8 text-center">
-          <h2 className="text-xl font-black text-[#1a1a2e] tracking-tight">
-            Ubah Password
-          </h2>
-          <p className="text-gray-500 text-sm font-medium mt-1">
-            Ganti password untuk menjaga akun tetap aman
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {success && (
-            <div className="glass border-l-4 border-green-400 text-green-600 p-4 rounded text-sm mb-4 flex items-center gap-2">
-              <FaCheckCircle />
-              <p>{success}</p>
-            </div>
-          )}
-
-          {errors.general && (
-            <div className="glass border-l-4 border-red-400 text-red-500 p-4 rounded text-sm mb-4">
-              <p>{errors.general}</p>
-            </div>
-          )}
-
-          <div className="group relative">
-            <label
-              htmlFor="oldPassword"
-              className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600"
-            >
-              Password Lama
-            </label>
-            <div className="relative">
-              <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="password"
-                id="oldPassword"
-                name="oldPassword"
-                value={formData.oldPassword}
-                onChange={handleChange}
-                className={`block w-full pl-12 pr-5 py-4 rounded-2xl border ${errors.oldPassword ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
-                placeholder="Password lama kamu"
-              />
-            </div>
-            {errors.oldPassword && (
-              <p className="mt-1 text-xs text-red-500 font-medium">
-                {errors.oldPassword}
-              </p>
-            )}
-          </div>
-
-          <div className="group relative">
-            <label
-              htmlFor="newPassword"
-              className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600"
-            >
-              Password Baru
-            </label>
-            <div className="relative">
-              <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="password"
-                id="newPassword"
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleChange}
-                className={`block w-full pl-12 pr-5 py-4 rounded-2xl border ${errors.newPassword ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
-                placeholder="Minimal 6 karakter"
-              />
-            </div>
-            {errors.newPassword && (
-              <p className="mt-1 text-xs text-red-500 font-medium">
-                {errors.newPassword}
-              </p>
-            )}
-          </div>
-
-          <div className="group relative">
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600"
-            >
-              Konfirmasi Password Baru
-            </label>
-            <div className="relative">
-              <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`block w-full pl-12 pr-5 py-4 rounded-2xl border ${errors.confirmPassword ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
-                placeholder="Ulangi password baru"
-              />
-            </div>
-            {errors.confirmPassword && (
-              <p className="mt-1 text-xs text-red-500 font-medium">
-                {errors.confirmPassword}
-              </p>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full flex justify-center py-4 px-4 rounded-2xl shadow-xl shadow-purple-500/20 text-base font-bold text-white bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 transform transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-8"
-          >
-            {isLoading ? (
-              <div className="flex items-center space-x-2">
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                <span>Lagi proses nih...</span>
-              </div>
-            ) : (
-              "Simpan Password Baru"
-            )}
-          </button>
+          <Button type="submit" loading={isEmailLoading} className="mt-8!">
+            Simpan email baru
+          </Button>
         </form>
-      </div>
-      )}
+      </AppShell>
+    );
+  }
 
-      {tab === "email" && (
-      <div className="glass-heavy rounded-3xl shadow-lg shadow-black/5 p-8">
-        <div className="mb-8 text-center">
-          <h2 className="text-xl font-black text-[#1a1a2e] tracking-tight">
-            Ubah Email
-          </h2>
-          <p className="text-gray-500 text-sm font-medium mt-1">
-            Ganti email login akun kamu
-          </p>
+  return (
+    <AppShell title="Akun" headerClassName="pb-16">
+      {/* Avatar menumpang di tepi sheet seperti layar "Setting" */}
+      <div className="-mt-[76px] flex flex-col items-center">
+        <div className="flex h-[100px] w-[100px] items-center justify-center rounded-full border-4 border-white bg-primary-4 text-4xl font-semibold text-primary shadow-soft">
+          {(email?.[0] || "U").toUpperCase()}
         </div>
-
-        <form onSubmit={handleEmailSubmit} className="space-y-6">
-          {emailSuccess && (
-            <div className="glass border-l-4 border-green-400 text-green-600 p-4 rounded text-sm mb-4 flex items-center gap-2">
-              <FaCheckCircle />
-              <p>{emailSuccess}</p>
-            </div>
-          )}
-
-          {emailErrors.general && (
-            <div className="glass border-l-4 border-red-400 text-red-500 p-4 rounded text-sm mb-4">
-              <p>{emailErrors.general}</p>
-            </div>
-          )}
-
-          <div>
-            <p className="text-sm text-gray-500 font-medium">
-              Email saat ini:{" "}
-              <span className="font-bold text-[#1a1a2e]">{currentEmail || user?.email || "—"}</span>
-            </p>
-          </div>
-
-          <div className="group relative">
-            <label
-              htmlFor="newEmail"
-              className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600"
-            >
-              Email Baru
-            </label>
-            <div className="relative">
-              <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="email"
-                id="newEmail"
-                name="newEmail"
-                value={emailForm.newEmail}
-                onChange={handleEmailChange}
-                className={`block w-full pl-12 pr-5 py-4 rounded-2xl border ${emailErrors.newEmail ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
-                placeholder="Email baru yang kamu mau"
-              />
-            </div>
-            {emailErrors.newEmail && (
-              <p className="mt-1 text-xs text-red-500 font-medium">
-                {emailErrors.newEmail}
-              </p>
-            )}
-          </div>
-
-          <div className="group relative">
-            <label
-              htmlFor="confirmEmail"
-              className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600"
-            >
-              Konfirmasi Email Baru
-            </label>
-            <div className="relative">
-              <FaEnvelope className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="email"
-                id="confirmEmail"
-                name="confirmEmail"
-                value={emailForm.confirmEmail}
-                onChange={handleEmailChange}
-                className={`block w-full pl-12 pr-5 py-4 rounded-2xl border ${emailErrors.confirmEmail ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
-                placeholder="Ulangi email baru"
-              />
-            </div>
-            {emailErrors.confirmEmail && (
-              <p className="mt-1 text-xs text-red-500 font-medium">
-                {emailErrors.confirmEmail}
-              </p>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={isEmailLoading}
-            className="w-full flex justify-center py-4 px-4 rounded-2xl shadow-xl shadow-purple-500/20 text-base font-bold text-white bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 transform transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-8"
-          >
-            {isEmailLoading ? (
-              <div className="flex items-center space-x-2">
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                <span>Lagi proses nih...</span>
-              </div>
-            ) : (
-              "Simpan Email Baru"
-            )}
-          </button>
-        </form>
+        <p className="mt-3 text-base leading-6 font-semibold text-primary">{displayName(email)}</p>
+        <p className="text-xs leading-4 font-medium text-subtle">{email}</p>
       </div>
-      )}
-    </div>
+
+      <div className="mt-6">
+        <button type="button" onClick={() => setView("password")} className={rowClass}>
+          <span className="text-base leading-6 font-medium text-ink">Ubah password</span>
+          <IoChevronForward size={16} className="text-placeholder" />
+        </button>
+        <button type="button" onClick={() => setView("email")} className={rowClass}>
+          <span className="text-base leading-6 font-medium text-ink">Ubah email</span>
+          <IoChevronForward size={16} className="text-placeholder" />
+        </button>
+        <Link href="/kategori" className={rowClass}>
+          <span className="text-base leading-6 font-medium text-ink">Kelola kategori</span>
+          <IoChevronForward size={16} className="text-placeholder" />
+        </Link>
+        <Link href="/statistik" className={rowClass}>
+          <span className="text-base leading-6 font-medium text-ink">Statistik tahunan</span>
+          <IoChevronForward size={16} className="text-placeholder" />
+        </Link>
+        <button type="button" onClick={handleLogout} disabled={isLoggingOut} className={`${rowClass} disabled:opacity-60`}>
+          <span className="text-base leading-6 font-medium text-danger">
+            {isLoggingOut ? "Keluar..." : "Keluar"}
+          </span>
+        </button>
+      </div>
+    </AppShell>
   );
 };
 

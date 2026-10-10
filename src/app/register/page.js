@@ -3,6 +3,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import AppShell from "@/components/ui/AppShell";
+import AuthIllustration from "@/components/ui/AuthIllustration";
+import Alert from "@/components/ui/Alert";
+import Button from "@/components/ui/Button";
+import Field from "@/components/ui/Field";
+import PasswordField from "@/components/ui/PasswordField";
 
 const Register = () => {
   const router = useRouter();
@@ -92,119 +98,67 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] text-[#1a1a2e] relative overflow-hidden">
-      <div className="hidden sm:block absolute top-[-15%] left-[-10%] w-[800px] h-[800px] bg-purple-400/25 rounded-full blur-[150px] animate-blob"></div>
-      <div className="hidden sm:block absolute bottom-[-15%] right-[-10%] w-[700px] h-[700px] bg-pink-400/25 rounded-full blur-[150px] animate-blob animation-delay-2000"></div>
-      <div className="hidden sm:block absolute top-[30%] right-[15%] w-[600px] h-[600px] bg-blue-400/25 rounded-full blur-[150px] animate-blob animation-delay-4000"></div>
+    <AppShell title="Daftar" backHref="/login" showNav={false}>
+      <h2 className="text-2xl leading-7 font-semibold text-primary">Selamat bergabung,</h2>
+      <p className="mt-1 text-xs leading-4 font-medium text-ink">Halo, yuk buat akun barumu</p>
 
-      <div className="w-full sm:max-w-[440px] relative z-10 min-h-screen sm:min-h-fit flex flex-col justify-center">
-        <div className="glass-heavy rounded-none sm:rounded-[2.5rem] shadow-lg sm:shadow-xl sm:shadow-black/5 p-8 sm:p-10 transition-all duration-500 min-h-screen sm:min-h-fit">
-          <div className="mb-8 text-center">
-            <div className="w-16 h-16 text-xl font-black glass-heavy rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/20">
-              <span className="bg-linear-to-tr from-purple-500 to-pink-500 bg-clip-text text-transparent">
-                FT
-              </span>
-            </div>
-            <h1 className="text-4xl font-black text-[#1a1a2e] tracking-tight mb-2">
-              FinTrack
-            </h1>
-            <p className="text-gray-500 text-sm font-medium px-4">
-              Mulai kelola keuanganmu dengan lebih modern! ✨
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {errors.general && (
-              <div className="glass border-l-4 border-red-400 text-red-500 p-4 rounded text-sm mb-4">
-                <p>{errors.general}</p>
-              </div>
-            )}
-
-            <div className="group relative">
-              <label className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600">
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="kamu@email.com"
-                className={`block w-full px-5 py-4 rounded-2xl border ${errors.email ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
-              />
-              {errors.email && (
-                <p className="mt-1 text-xs text-red-500 font-medium">{errors.email}</p>
-              )}
-            </div>
-
-            <div className="group relative">
-              <label className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Minimal 6 karakter"
-                className={`block w-full px-5 py-4 rounded-2xl border ${errors.password ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
-              />
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-500 font-medium">{errors.password}</p>
-              )}
-            </div>
-
-            <div className="group relative">
-              <label className="block text-sm font-medium text-gray-600 mb-1 transition-colors group-focus-within:text-purple-600">
-                Ulangi Password
-              </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Konfirmasi password"
-                className={`block w-full px-5 py-4 rounded-2xl border ${errors.confirmPassword ? "border-red-400/50 ring-2 ring-red-500/30" : "border-black/10 focus:ring-2 focus:ring-purple-400/50"} glass-input focus:glass-input-focus transition-all duration-300 outline-none text-base font-medium text-[#1a1a2e] placeholder-gray-400`}
-              />
-              {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-500 font-medium">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex justify-center py-4 px-4 rounded-2xl shadow-xl shadow-purple-500/20 text-base font-bold text-white bg-linear-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 transform transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-8"
-            >
-              {isLoading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-                  <span>Lagi daftar nih...</span>
-                </div>
-              ) : (
-                "Daftar Sekarang"
-              )}
-            </button>
-          </form>
-
-          <div className="mt-8 text-center pt-2">
-            <p className="text-sm text-gray-500 font-medium">
-              Sudah punya akun?{" "}
-              <Link
-                href="/login"
-                className="font-bold text-purple-600 hover:text-purple-500 transition-colors ml-1"
-              >
-                Masuk di sini
-              </Link>
-            </p>
-          </div>
-        </div>
-
-        <div className="absolute bottom-4 text-center text-gray-400 text-xs w-full">
-          © {new Date().getFullYear()} FinTrack. All rights reserved.
-        </div>
+      <div className="mt-8">
+        <AuthIllustration variant="signup" />
       </div>
-    </div>
+
+      <form onSubmit={handleSubmit} className="mt-8 space-y-5" noValidate>
+        <Alert tone="error">{errors.general}</Alert>
+
+        <Field
+          type="email"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Email"
+          autoComplete="email"
+          aria-label="Email"
+          error={errors.email}
+        />
+        <PasswordField
+          id="password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="Password (minimal 6 karakter)"
+          autoComplete="new-password"
+          aria-label="Password"
+          error={errors.password}
+        />
+        <PasswordField
+          id="confirmPassword"
+          name="confirmPassword"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          placeholder="Ulangi password"
+          autoComplete="new-password"
+          aria-label="Ulangi password"
+          error={errors.confirmPassword}
+        />
+
+        <Button
+          type="submit"
+          disabled={!formData.email || !formData.password || !formData.confirmPassword}
+          loading={isLoading}
+          loadingText="Mendaftar..."
+          className="mt-10!"
+        >
+          Daftar
+        </Button>
+      </form>
+
+      <p className="mt-8 text-center text-xs leading-4 text-ink">
+        Sudah punya akun?{" "}
+        <Link href="/login" className="ml-1 font-semibold text-primary">
+          Masuk
+        </Link>
+      </p>
+    </AppShell>
   );
 };
 
