@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { IoChevronForward } from "react-icons/io5";
 import { supabase } from "@/lib/supabase";
@@ -446,14 +445,6 @@ const ProfilClient = ({ user }) => {
           <span className="text-base leading-6 font-medium text-ink">Ubah email</span>
           <IoChevronForward size={16} className="text-placeholder" />
         </button>
-        <Link href="/kategori" className={rowClass}>
-          <span className="text-base leading-6 font-medium text-ink">Kelola kategori</span>
-          <IoChevronForward size={16} className="text-placeholder" />
-        </Link>
-        <Link href="/statistik" className={rowClass}>
-          <span className="text-base leading-6 font-medium text-ink">Statistik tahunan</span>
-          <IoChevronForward size={16} className="text-placeholder" />
-        </Link>
         <button type="button" onClick={handleLogout} disabled={isLoggingOut} className={`${rowClass} disabled:opacity-60`}>
           <span className="text-base leading-6 font-medium text-danger">
             {isLoggingOut ? "Keluar..." : "Keluar"}
