@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaTrash } from "react-icons/fa";
-import { IoAdd, IoChevronBack, IoChevronForward, IoArrowForward } from "react-icons/io5";
+import { IoChevronBack, IoChevronForward, IoArrowForward } from "react-icons/io5";
 import AppShell from "@/components/ui/AppShell";
 import BottomSheet from "@/components/ui/BottomSheet";
+import { ADD_TRANSACTION_EVENT } from "@/components/ui/BottomNav";
 import Button from "@/components/ui/Button";
 import Field, { Label } from "@/components/ui/Field";
 import SpendingCard from "@/components/SpendingCard";
@@ -22,15 +23,27 @@ const emptyForm = () => ({
   kategori: "",
 });
 
-export default function DashboardClient({ user, initialTransactions, initialCategories }) {
+export default function DashboardClient({ user, initialTransactions, initialCategories, openFormOnLoad = false }) {
   const router = useRouter();
   const [transactions, setTransactions] = useState(initialTransactions || []);
   const [categories] = useState(initialCategories || []);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(openFormOnLoad);
   const [formData, setFormData] = useState(emptyForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+
+  // Tombol "+" di tab bar membuka form tambah transaksi
+  useEffect(() => {
+    const open = () => setIsFormOpen(true);
+    window.addEventListener(ADD_TRANSACTION_EVENT, open);
+    return () => window.removeEventListener(ADD_TRANSACTION_EVENT, open);
+  }, []);
+
+  // Datang dari halaman lain lewat /?tambah=1 — bersihkan URL agar refresh tidak membuka form lagi
+  useEffect(() => {
+    if (openFormOnLoad) router.replace("/", { scroll: false });
+  }, [openFormOnLoad, router]);
 
   const fetchTransactions = async (date) => {
     setIsFetching(true);
@@ -296,20 +309,6 @@ export default function DashboardClient({ user, initialTransactions, initialCate
           <p className="mt-4 text-center text-xs text-placeholder">Geser item ke kanan untuk menghapus</p>
         )}
       </section>
-
-      {/* FAB tambah transaksi, sejajar dengan kolom aplikasi */}
-      <div
-        className="pointer-events-none fixed inset-x-0 z-50 mx-auto flex w-full max-w-md justify-end px-6"
-        style={{ bottom: "calc(72px + var(--sab) + 16px)" }}
-      >
-        <button
-          onClick={() => setIsFormOpen(true)}
-          className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-[0_8px_24px_rgba(54,41,183,0.35)] transition-transform active:scale-90"
-          aria-label="Tambah transaksi"
-        >
-          <IoAdd size={28} />
-        </button>
-      </div>
 
       <BottomSheet open={isFormOpen} onClose={() => setIsFormOpen(false)} title="Tambah transaksi">
         <FormContent

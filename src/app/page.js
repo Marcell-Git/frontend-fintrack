@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import DashboardClient from "@/components/DashboardClient";
 import { fetchWithAuth } from "@/lib/api";
 
-export default async function Home() {
+export default async function Home({ searchParams }) {
+  const { tambah } = await searchParams;
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
@@ -24,6 +25,7 @@ export default async function Home() {
       user={user}
       initialTransactions={transactions}
       initialCategories={categories || []}
+      openFormOnLoad={tambah === "1"}
     />
   );
 }
