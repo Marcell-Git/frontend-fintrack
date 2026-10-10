@@ -1,7 +1,8 @@
 // Text field sesuai komponen "Text field / Default" di Figma:
-// tinggi 44px, radius 15px, border #CBCBCB, teks 14px medium.
+// tinggi 44px, radius 15px, border #CBCBCB, teks medium.
+// Teks 16px (bukan 14px seperti Figma): iOS otomatis zoom kalau font input < 16px.
 export const inputClass = (hasError) =>
-  `block h-11 w-full rounded-field border bg-surface px-3 text-sm font-medium text-ink placeholder:text-placeholder outline-none transition-colors focus:border-primary ${
+  `block h-11 w-full min-w-0 rounded-field border bg-surface px-3 text-base font-medium text-ink placeholder:text-placeholder outline-none transition-colors focus:border-primary ${
     hasError ? "border-danger" : "border-field"
   }`;
 
