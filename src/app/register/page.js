@@ -9,11 +9,13 @@ import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 import Field from "@/components/ui/Field";
 import PasswordField from "@/components/ui/PasswordField";
+import { USERNAME_MAX_LENGTH } from "@/lib/format";
 
 const Register = () => {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -35,6 +37,12 @@ const Register = () => {
 
   const validate = () => {
     const newErrors = {};
+
+    if (!formData.username.trim()) {
+      newErrors.username = "Username-nya diisi dulu ya!";
+    } else if (formData.username.trim().length > USERNAME_MAX_LENGTH) {
+      newErrors.username = `Username maksimal ${USERNAME_MAX_LENGTH} karakter ya.`;
+    }
 
     if (!formData.email.trim()) {
       newErrors.email = "Email-nya jangan lupa diisi ya!";
@@ -68,6 +76,8 @@ const Register = () => {
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
+        // Disimpan di user_metadata; backend menyalinnya ke tabel users saat register/login pertama
+        options: { data: { username: formData.username.trim() } },
       });
 
       if (error) {
@@ -110,6 +120,18 @@ const Register = () => {
         <Alert tone="error">{errors.general}</Alert>
 
         <Field
+          type="text"
+          id="username"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          placeholder="Username"
+          autoComplete="nickname"
+          maxLength={USERNAME_MAX_LENGTH}
+          aria-label="Username"
+          error={errors.username}
+        />
+        <Field
           type="email"
           id="email"
           name="email"
@@ -143,7 +165,7 @@ const Register = () => {
 
         <Button
           type="submit"
-          disabled={!formData.email || !formData.password || !formData.confirmPassword}
+          disabled={!formData.username.trim() || !formData.email || !formData.password || !formData.confirmPassword}
           loading={isLoading}
           loadingText="Mendaftar..."
           className="mt-10!"

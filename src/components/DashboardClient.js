@@ -11,7 +11,7 @@ import { ADD_TRANSACTION_EVENT } from "@/components/ui/BottomNav";
 import Button from "@/components/ui/Button";
 import Field, { Label } from "@/components/ui/Field";
 import SpendingCard from "@/components/SpendingCard";
-import { formatRupiah, capitalize, displayName } from "@/lib/format";
+import { formatRupiah, capitalize, greetingName } from "@/lib/format";
 
 const FALLBACK_COLOR = "#8E8E93";
 const MAX_CATEGORY_TILES = 6;
@@ -187,11 +187,11 @@ export default function DashboardClient({ user, initialTransactions, initialCate
   const header = (
     <div className="flex h-[53px] items-center gap-4">
       <div className="flex h-[50px] w-[50px] flex-none items-center justify-center rounded-full bg-white/15 text-xl font-semibold ring-2 ring-white/30">
-        {(user?.email?.[0] || "U").toUpperCase()}
+        {greetingName(user).charAt(0).toUpperCase()}
       </div>
       <div className="min-w-0">
         <p className="text-xs leading-4 text-white/70">Selamat datang,</p>
-        <p className="truncate text-base leading-6 font-medium">Hai, {displayName(user?.email)}</p>
+        <p className="truncate text-base leading-6 font-medium">Hai, {greetingName(user)}</p>
       </div>
     </div>
   );

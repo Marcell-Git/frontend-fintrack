@@ -6,3 +6,8 @@ export const capitalize = (text) =>
 
 // "budi.santoso@mail.com" -> "Budi.santoso"
 export const displayName = (email) => capitalize(email?.split("@")[0] || "Kamu");
+
+// Username kalau ada; user lama yang belum mengisinya pakai bagian depan email
+export const greetingName = (user) => user?.username?.trim() || displayName(user?.email);
+
+export const USERNAME_MAX_LENGTH = 50;

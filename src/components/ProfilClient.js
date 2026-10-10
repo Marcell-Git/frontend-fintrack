@@ -8,9 +8,10 @@ import AppShell from "@/components/ui/AppShell";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import Field from "@/components/ui/Field";
-import { displayName } from "@/lib/format";
+import { greetingName, USERNAME_MAX_LENGTH } from "@/lib/format";
 
 const VIEW_TITLES = {
+  username: "Ubah username",
   password: "Ubah password",
   email: "Ubah email",
 };
@@ -38,6 +39,11 @@ const ProfilClient = ({ user }) => {
   const [emailSuccess, setEmailSuccess] = useState("");
   const [currentEmail, setCurrentEmail] = useState("");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [username, setUsername] = useState(user?.username || "");
+  const [usernameInput, setUsernameInput] = useState(user?.username || "");
+  const [usernameError, setUsernameError] = useState("");
+  const [usernameSuccess, setUsernameSuccess] = useState("");
+  const [isUsernameLoading, setIsUsernameLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -52,6 +58,54 @@ const ProfilClient = ({ user }) => {
   }, []);
 
   const email = currentEmail || user?.email || "";
+
+  const openUsernameView = () => {
+    setUsernameInput(username);
+    setUsernameError("");
+    setUsernameSuccess("");
+    setView("username");
+  };
+
+  const handleUsernameSubmit = async (e) => {
+    e.preventDefault();
+    const trimmed = usernameInput.trim();
+
+    if (!trimmed) {
+      setUsernameError("Username-nya diisi dulu ya!");
+      return;
+    }
+    if (trimmed.length > USERNAME_MAX_LENGTH) {
+      setUsernameError(`Username maksimal ${USERNAME_MAX_LENGTH} karakter ya.`);
+      return;
+    }
+
+    setIsUsernameLoading(true);
+    setUsernameError("");
+    setUsernameSuccess("");
+
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: trimmed }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Gagal menyimpan username. Coba lagi ya!");
+      }
+
+      const updated = await res.json();
+      setUsername(updated.username || trimmed);
+      setUsernameInput(updated.username || trimmed);
+      setUsernameSuccess("Username berhasil disimpan! 🎉");
+      router.refresh();
+    } catch (err) {
+      setUsernameError(err.message);
+    } finally {
+      setIsUsernameLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -232,6 +286,46 @@ const ProfilClient = ({ user }) => {
     }
   };
 
+  if (view === "username") {
+    return (
+      <AppShell title={VIEW_TITLES.username} onBack={() => setView(null)}>
+        <p className="mb-6 text-xs leading-4 font-medium text-ink">
+          Nama ini dipakai untuk sapaan di halaman Beranda
+        </p>
+        <form onSubmit={handleUsernameSubmit} className="space-y-5">
+          <Alert tone="success">{usernameSuccess}</Alert>
+
+          <Field
+            label="Username"
+            type="text"
+            id="username"
+            name="username"
+            value={usernameInput}
+            onChange={(e) => {
+              setUsernameInput(e.target.value);
+              if (usernameError) setUsernameError("");
+              if (usernameSuccess) setUsernameSuccess("");
+            }}
+            placeholder="Username"
+            autoComplete="nickname"
+            maxLength={USERNAME_MAX_LENGTH}
+            error={usernameError}
+          />
+
+          <Button
+            type="submit"
+            disabled={!usernameInput.trim() || usernameInput.trim() === username}
+            loading={isUsernameLoading}
+            loadingText="Menyimpan..."
+            className="mt-8!"
+          >
+            Simpan username
+          </Button>
+        </form>
+      </AppShell>
+    );
+  }
+
   if (view === "password") {
     return (
       <AppShell title={VIEW_TITLES.password} onBack={() => setView(null)}>
@@ -328,13 +422,22 @@ const ProfilClient = ({ user }) => {
       {/* Avatar menumpang di tepi sheet seperti layar "Setting" */}
       <div className="-mt-[76px] flex flex-col items-center">
         <div className="flex h-[100px] w-[100px] items-center justify-center rounded-full border-4 border-surface bg-primary-4 text-4xl font-semibold text-primary shadow-soft">
-          {(email?.[0] || "U").toUpperCase()}
+          {greetingName({ username, email }).charAt(0).toUpperCase()}
         </div>
-        <p className="mt-3 text-base leading-6 font-semibold text-primary">{displayName(email)}</p>
+        <p className="mt-3 text-base leading-6 font-semibold text-primary">{greetingName({ username, email })}</p>
         <p className="text-xs leading-4 font-medium text-subtle">{email}</p>
       </div>
 
       <div className="mt-6">
+        <button type="button" onClick={openUsernameView} className={rowClass}>
+          <span className="text-base leading-6 font-medium text-ink">Username</span>
+          <span className="flex min-w-0 items-center gap-2">
+            <span className={`truncate text-xs leading-4 font-semibold ${username ? "text-subtle" : "text-primary"}`}>
+              {username || "Atur sekarang"}
+            </span>
+            <IoChevronForward size={16} className="flex-none text-placeholder" />
+          </span>
+        </button>
         <button type="button" onClick={() => setView("password")} className={rowClass}>
           <span className="text-base leading-6 font-medium text-ink">Ubah password</span>
           <IoChevronForward size={16} className="text-placeholder" />
